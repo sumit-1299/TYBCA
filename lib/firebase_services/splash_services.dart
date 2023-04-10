@@ -11,7 +11,7 @@ class SplashServices {
       Timer(const Duration(seconds: 3),
               () =>
               Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => Dashboard()))
+                  context, MaterialPageRoute(builder: (context) => Home()))
       );
     } else {
       Timer(const Duration(seconds: 3),

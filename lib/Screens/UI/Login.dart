@@ -35,7 +35,7 @@ class _LoginState extends State<Login> {
         email: email,
         password: password).then((value){
           Utils().toastMessage(value.user!.toString());
-          Navigator.push(context, MaterialPageRoute(builder: (context) => Dashboard())
+          Navigator.push(context, MaterialPageRoute(builder: (context) => Home())
           );
     }).onError((error, stackTrace){
       debugPrint(error.toString());
