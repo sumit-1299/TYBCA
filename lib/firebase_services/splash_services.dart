@@ -1,0 +1,24 @@
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:register1/Screens/Home.dart';
+import 'package:register1/Screens/UI/Login.dart';
+import 'package:register1/Screens/navigator.dart';
+
+class SplashServices {
+  void isLogin(BuildContext context) {
+    if (FirebaseAuth.instance.currentUser != null) {
+      Timer(const Duration(seconds: 3),
+              () =>
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => Dashboard()))
+      );
+    } else {
+      Timer(const Duration(seconds: 3),
+              () =>
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (context) => Login()))
+      );
+    }
+  }
+}
