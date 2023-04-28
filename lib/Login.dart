@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mongo_dart/mongo_dart.dart' as Mongo;
 import 'package:register1/Home.dart';
 import 'package:register1/Login_phone.dart';
 import 'package:register1/Signup.dart';
@@ -8,8 +9,9 @@ import 'package:register1/Widgets/Button.dart';
 import 'package:register1/navigator.dart';
 import 'package:register1/utils/utils.dart';
 class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+  Login({Key? key, required this.db}) : super(key: key);
 
+  Mongo.Db db;
   @override
   State<Login> createState() => _LoginState();
 }
@@ -127,9 +129,20 @@ class _LoginState extends State<Login> {
               ),
              const SizedBox(height: 50,),
               Button(title: 'Login',
-              onTap: (){
-                if(_form.currentState!.validate());
-                login();
+              onTap: () async{
+                if(_form.currentState!.validate()){
+                  _form.currentState?.save();
+                   await _auth.signInWithEmailAndPassword(
+                        email: email,
+                        password: password).then((value){
+                          // Utils().toastMessage(value.user!.toString());
+                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Successful"),
+                       
+                     ));
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => Home(db: widget.db,))
+                          );
+                });
+                      }
               },
               ),
               const SizedBox(

@@ -126,8 +126,8 @@ class _SignupState extends State<Signup> {
               children: [
                 Text("Already have an account"),
                 TextButton(onPressed: (){
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Login()));
+                  // Navigator.push(context,
+                  //     MaterialPageRoute(builder: (context) => Login()));
                 },
                     child: Text('Login'))
               ],

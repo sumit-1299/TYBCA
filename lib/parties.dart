@@ -12,7 +12,7 @@ class Parties extends StatelessWidget {
     await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.PNames": 1}).last.then((value) async{
       print("${value.entries.last.value['PNames'].length}");
       for(int i=0;i<value.entries.last.value['PNames'].length;i++){
-        await db.collection('test').modernFind(selector: Mongo.where.eq("_id", "1234"),projection: {"Nigam1.Parties.${value.entries.last.value['PNames'][i]}": 1}).last.then((value){
+        await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Parties.${value.entries.last.value['PNames'][i]}": 1}).last.then((value){
           print("Loop Index: $i");
           print("values: ${value.entries.last.value['Parties']}");
           data.addAll(value.entries.last.value['Parties']);

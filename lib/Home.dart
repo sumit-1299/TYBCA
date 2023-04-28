@@ -35,7 +35,7 @@ class Home extends StatelessWidget {
                 Navigator.popUntil(context, (route) => route.isFirst);
                 Navigator.pushReplacement(
                     context,
-                  MaterialPageRoute(builder: (context) => Login())
+                  MaterialPageRoute(builder: (context) => Login(db: db))
                     
                 );
               },

@@ -39,7 +39,7 @@ void main() async{
       primarySwatch: Colors.purple,
     ),
     debugShowCheckedModeBanner: false,
-    home: FirebaseAuth.instance.currentUser!=null?Home(db: _db):Login(),
+    home: FirebaseAuth.instance.currentUser!=null?Home(db: _db):Login(db: _db),
   ));
 }
 
