@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:register1/Screens/Home.dart';
-import 'package:register1/Screens/UI/Login_phone.dart';
-import 'package:register1/Screens/UI/Signup.dart';
-import 'package:register1/Screens/UI/Widgets/Button.dart';
-import 'package:register1/Screens/navigator.dart';
+import 'package:register1/Home.dart';
+import 'package:register1/Login_phone.dart';
+import 'package:register1/Signup.dart';
+import 'package:register1/Widgets/Button.dart';
+import 'package:register1/navigator.dart';
 import 'package:register1/utils/utils.dart';
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -31,16 +31,16 @@ class _LoginState extends State<Login> {
     passwordController.dispose();
   }*/
    void login(){
-    _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password).then((value){
-          Utils().toastMessage(value.user!.toString());
-          Navigator.push(context, MaterialPageRoute(builder: (context) => Home())
-          );
-    }).onError((error, stackTrace){
-      debugPrint(error.toString());
-      Utils().toastMessage(error.toString());
-  });
+  //   _auth.signInWithEmailAndPassword(
+  //       email: email,
+  //       password: password).then((value){
+  //         Utils().toastMessage(value.user!.toString());
+  //         Navigator.push(context, MaterialPageRoute(builder: (context) => Home())
+  //         );
+  //   }).onError((error, stackTrace){
+  //     debugPrint(error.toString());
+  //     Utils().toastMessage(error.toString());
+  // });
    }
   @override
   Widget build(BuildContext context) {

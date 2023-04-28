@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:register1/Screens/UI/Widgets/Button.dart';
-import 'package:register1/Screens/UI/verifyphone.dart';
+import 'package:register1/Widgets/Button.dart';
+import 'package:register1/verifyphone.dart';
 import 'package:register1/utils/utils.dart';
 
 

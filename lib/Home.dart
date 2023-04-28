@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mongo_dart/mongo_dart.dart' as Mongo;
 
-import 'UI/Login.dart';
-import 'UI/cnb.dart';
-import 'UI/parties.dart';
-import 'UI/payments.dart';
-import 'UI/sales.dart';
-import 'UI/stock.dart';
+import 'Login.dart';
+import 'cnb.dart';
+import 'parties.dart';
+import 'payments.dart';
+import 'sales.dart';
+import 'stock.dart';
 class Home extends StatelessWidget {
-  const Home({Key? key}) : super(key: key);
+  Home({Key? key, required this.db}) : super(key: key);
 
+  Mongo.Db db;
   @override
   Widget build(BuildContext context) {
      return Scaffold(
@@ -63,7 +65,7 @@ class Home extends StatelessWidget {
                       onTap: (){
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Parties())
+                          MaterialPageRoute(builder: (context) => Parties(db: db))
                         );
                       },
                     ),
@@ -72,7 +74,7 @@ class Home extends StatelessWidget {
                       onTap: (){
                         Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Parties())
+                            MaterialPageRoute(builder: (context) => Parties(db: db))
                         );
                       },
                     ),

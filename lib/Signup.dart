@@ -1,8 +1,6 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-import 'package:register1/Screens/UI/Login.dart';
-import 'package:register1/Screens/UI/Widgets/Button.dart';
+import 'package:register1/Login.dart';
+import 'package:register1/Widgets/Button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:register1/utils/utils.dart';
 class Signup extends StatefulWidget {
