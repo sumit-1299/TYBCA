@@ -13,7 +13,6 @@ class LoginPhone extends StatefulWidget {
 
 class _LoginPhoneState extends State<LoginPhone> {
   final phone = TextEditingController();
-  final auth = FirebaseAuth.instance;
   @override
   Widget build(BuildContext context) {
     return  Scaffold(
@@ -36,7 +35,7 @@ class _LoginPhoneState extends State<LoginPhone> {
             ),
             SizedBox(height: 80,),
             Button(title: 'Login', onTap: (){
-            auth.verifyPhoneNumber(
+            FirebaseAuth.instance.verifyPhoneNumber(
               phoneNumber: phone.text,
                 verificationCompleted: (_){
 

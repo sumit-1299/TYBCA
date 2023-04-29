@@ -6,8 +6,6 @@ import 'package:register1/Home.dart';
 import 'package:register1/Login_phone.dart';
 import 'package:register1/Signup.dart';
 import 'package:register1/Widgets/Button.dart';
-import 'package:register1/navigator.dart';
-import 'package:register1/utils/utils.dart';
 class Login extends StatefulWidget {
   Login({Key? key, required this.db}) : super(key: key);
 
@@ -18,32 +16,8 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final _form = GlobalKey<FormState>();
-/*  final emailController = TextEditingController();
-  final passwordController = TextEditingController();*/
-
   String email='nigam123@gmail.com', password='1234567890';
 
-  final _auth = FirebaseAuth.instance;
-
-/*  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-  }*/
-   void login(){
-  //   _auth.signInWithEmailAndPassword(
-  //       email: email,
-  //       password: password).then((value){
-  //         Utils().toastMessage(value.user!.toString());
-  //         Navigator.push(context, MaterialPageRoute(builder: (context) => Home())
-  //         );
-  //   }).onError((error, stackTrace){
-  //     debugPrint(error.toString());
-  //     Utils().toastMessage(error.toString());
-  // });
-   }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -54,7 +28,7 @@ class _LoginState extends State<Login> {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text('Login'),
+          title: const Text('Login'),
         ),
         body: Padding(
            padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -132,13 +106,11 @@ class _LoginState extends State<Login> {
               onTap: () async{
                 if(_form.currentState!.validate()){
                   _form.currentState?.save();
-                   await _auth.signInWithEmailAndPassword(
+                   await FirebaseAuth.instance.signInWithEmailAndPassword(
                         email: email,
                         password: password).then((value){
                           // Utils().toastMessage(value.user!.toString());
-                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Successful"),
-                       
-                     ));
+                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Login Successful"),));
                           Navigator.push(context, MaterialPageRoute(builder: (context) => Home(db: widget.db,))
                           );
                 });
@@ -151,12 +123,12 @@ class _LoginState extends State<Login> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Don't have an account"),
+                  const Text("Don't have an account"),
                   TextButton(onPressed: (){
                         Navigator.push(context,
                             MaterialPageRoute(builder: (context) => Signup()));
                   },
-                      child: Text('Sign up'))
+                      child: const Text('Sign up'))
                 ],
               ),
                const SizedBox(height: 10,),
@@ -178,7 +150,7 @@ class _LoginState extends State<Login> {
                     color: Colors.black
                   )
                 ),
-                  child: Center(
+                  child: const Center(
                    child: Text('Login with phone number'),
                 ),
               ),

@@ -65,7 +65,7 @@ class Home extends StatelessWidget {
                       onTap: (){
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Parties(db: db))
+                          MaterialPageRoute(builder: (context) => Parties(db: db,tabIndex: 0,))
                         );
                       },
                     ),
@@ -74,7 +74,7 @@ class Home extends StatelessWidget {
                       onTap: (){
                         Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Parties(db: db))
+                            MaterialPageRoute(builder: (context) => Parties(db: db,tabIndex: 1,))
                         );
                       },
                     ),
