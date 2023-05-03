@@ -8,10 +8,24 @@ import 'parties.dart';
 import 'payments.dart';
 import 'sales.dart';
 import 'stock.dart';
+import 'items.dart';
 class Home extends StatelessWidget {
   Home({Key? key, required this.db}) : super(key: key);
 
   Mongo.Db db;
+
+  @override
+  void initState() async{
+    if(!db.isConnected){
+      await db.open().then((value) {
+        print("connection Successful");
+        print("state: ${db.state}, connected? ${db.isConnected}");
+        return value;
+      }).catchError((error) {
+        print("Error: ${error.toString()}");
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
      return Scaffold(
@@ -107,15 +121,15 @@ class Home extends StatelessWidget {
                         );
                       },
                     ),
-                    /*ListTile(
-                      title: Text("Reports"),
+                    ListTile(
+                      title: Text("Items"),
                       onTap: (){
                         Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => Reports())
+                            MaterialPageRoute(builder: (context) => Items(db: db))
                         );
                       },
-                    ),*/
+                    ),
                   ],
                 ),
                 const Padding(padding: EdgeInsets.only(top: 20)),
