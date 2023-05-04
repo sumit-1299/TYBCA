@@ -126,17 +126,24 @@ class Parties extends StatelessWidget {
               // });
 
               // print("test: ${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(2)}");
+              Map<String,dynamic> collect = Map();
+              Map<String,dynamic> pay = Map();
+
+              collect.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
+              pay.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
+
+              // print("Collect: $collect\nPay: $pay");
               return TabBarView(
                 children: [
                   ///To Collect
                   ListView.builder(
-                      itemCount: snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).length,
+                      itemCount: collect.length,
                       itemBuilder: (context, index) {
                         int total = 0;
                         /*for(int i=0;i<snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].keys.length;i++){
                           total += snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.elementAt(i).value['Amount'] as int;
                         }*/
-                        snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.forEach((item){
+                        collect.entries.elementAt(index).value['Items'].entries.forEach((item){
                           print("collect status: ${item.key}");
                           if(!item.value['pay']){
                             total += item.value['Amount'] as int;
@@ -144,32 +151,35 @@ class Parties extends StatelessWidget {
                         });
                         print("total: $total");
                         return ListTile(
-                          title: Text("${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).key}"),
+                          title: Text(collect.keys.elementAt(index)),
                           onTap: (){
-                            print("value: ${snapshot.data?.entries.elementAt(index)}\nindex: $index");
+                            // print("${collect}");
+                            // print("Items details: ${collect.values.first['Items'].values.elementAt(0).length}");
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => Scaffold(
                                   appBar: AppBar(
-                                    title: Text("${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).key}"),
+                                    title: Text(collect.keys.elementAt(index)),
                                   ),
                                   body: ListView.builder(
-                                      itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).length,
+                                      itemCount: collect.values.elementAt(index)['Items'].length,
                                       itemBuilder: (context, item) {
-                                        print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.length}");
+                                        // print("Items details: ${collect.values.first['Items'].length}");
+                                        print("properties: ${collect.values.elementAt(index)['Items'].values.elementAt(item).length}");
                                         return ListTile(
-                                          title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).key}"),
+                                          title: Text(collect.values.elementAt(index)['Items'].keys.elementAt(item)),
                                           subtitle: ListView.builder(
                                               physics: const NeverScrollableScrollPhysics(),
                                               shrinkWrap: true,
-                                              itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.length,
+                                              itemCount: collect.values.elementAt(index)['Items'].values.elementAt(item).length,
                                               itemBuilder: (context, property) {
                                                 // print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.length}");
                                                 // print("${snapshot.data?.entries}");
                                                 // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
-                                                return snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.keys.elementAt(property)!="pay"?ListTile(
-                                                  title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.keys.elementAt(property)}:"),
-                                                  trailing: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.elementAt(property)}"),
+                                                print(collect.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property));
+                                                return collect.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
+                                                  title: Text("${collect.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)}:"),
+                                                  trailing: Text("${collect.values.elementAt(index)['Items'].values.elementAt(item).values.elementAt(property)}"),
                                                 ): const SizedBox();
                                               }
                                           ),
@@ -178,33 +188,6 @@ class Parties extends StatelessWidget {
                                   ),
                                 ))
                             );
-                            /*showDialog(context: context, builder: (context) => AlertDialog(
-                                title: Text("${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty).elementAt(index).key}"),
-                                content: Container(
-                                  height: MediaQuery.of(context).size.height*0.8,
-                                  width: MediaQuery.of(context).size.width*0.9,
-                                  child: ListView.builder(
-                                      itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).length,
-                                      itemBuilder: (context, item) => ListTile(
-                                        title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).key}"),
-                                        subtitle: ListView.builder(
-                                            physics: const NeverScrollableScrollPhysics(),
-                                            shrinkWrap: true,
-                                            itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.length,
-                                            itemBuilder: (context, property) {
-                                              print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.length}");
-                                              // print("${snapshot.data?.entries}");
-                                              // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
-                                              return snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.keys.elementAt(property)!="pay"?ListTile(
-                                                title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.keys.elementAt(property)}:"),
-                                                trailing: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.elementAt(property)}"),
-                                              ): const SizedBox();
-                                            }
-                                        ),
-                                      )
-                                  ),
-                                )
-                            ));*/
                           },
                           trailing: Text("Total: $total"),
                         );
