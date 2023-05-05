@@ -53,8 +53,7 @@ class Parties extends StatelessWidget {
     Map<String, dynamic> data = Map();
     await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.PNames": 1}).last.then((value) async{
       // print("${value.entries.last.value['PNames'].length}");
-      for(int i=0;i
-          <value.entries.last.value['PNames'].length;i++){
+      for(int i=0;i <value.entries.last.value['PNames'].length;i++){
         await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Parties.${value.entries.last.value['PNames'][i]}": 1}).last.then((value){
           // print("Loop Index: $i");
           // print("values: ${value.entries.last.value['Parties']}");
@@ -129,10 +128,77 @@ class Parties extends StatelessWidget {
               Map<String,dynamic> collect = Map();
               Map<String,dynamic> pay = Map();
 
-              collect.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
-              pay.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
+              // MapEntry<String, dynamic> mapEntry = MapEntry("zek", "0");
 
-              // print("Collect: $collect\nPay: $pay");
+              // print("Snapshot: ${snapshot.data}");
+              // collect.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
+              snapshot.data?.entries.forEach((entry) {
+                print("Entry: ${entry.key}");
+                print("Collection Exists? ${entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty}");
+                if(entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty) {
+                  // print(entry);
+                  // collect.addAll({entry.key: });
+                  print("Collection Entry: ${entry.value['Items'].entries.where((item) => !item.value['pay']==true)}");
+                  entry.value['Items'].entries.where((item) => !item.value['pay']==true).forEach((item) {
+                    print("Item: ${item}");
+
+                    if(collect.containsKey(entry.key)) {
+                      print("existing: ${collect[entry.key]}");
+                          collect.addAll({
+                            entry.key: {
+                              collect[entry.key],
+                              {item.key: item.value}
+                            }
+                          });
+                        }
+                    else{
+                      collect.addAll({
+                        entry.key : {
+                          item.key : item.value
+                        }
+                      });
+                    }
+                      });
+
+                  // collect.addEntries(entry.value['Items'].entries.where((item) => !item.value['pay']==true));
+                  // collect.addAll(entry.value['Items'].values.first);
+                }
+
+                if(entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) {
+                  // print(entry);
+                  // collect.addAll({entry.key: });
+                  print("Collection Entry: ${entry.value['Items'].entries.where((item) => item.value['pay']==true)}");
+                  entry.value['Items'].entries.where((item) => item.value['pay']==true).forEach((item) {
+                    print("Item: ${item}");
+
+                    if(pay.containsKey(entry.key)) {
+                      print("existing: ${pay[entry.key]}");
+                      pay.addAll({
+                        entry.key: {
+                          pay[entry.key],
+                          {item.key: item.value}
+                        }
+                      });
+                    }
+                    else{
+                      pay.addAll({
+                        entry.key : {
+                          item.key : item.value
+                        }
+                      });
+                    }
+                  });
+
+                  // collect.addEntries(entry.value['Items'].entries.where((item) => !item.value['pay']==true));
+                  // collect.addAll(entry.value['Items'].values.first);
+                }
+
+
+                // collect.addAll({entry.key: entry.value['Items'].entries.where((item) => !item.value['pay']==true)});
+              });
+              // pay.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
+
+              print("Collect: $collect\n\nPay: $pay");
               return TabBarView(
                 children: [
                   ///To Collect
@@ -143,11 +209,13 @@ class Parties extends StatelessWidget {
                         /*for(int i=0;i<snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].keys.length;i++){
                           total += snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.elementAt(i).value['Amount'] as int;
                         }*/
+
                         collect.entries.elementAt(index).value['Items'].entries.forEach((item){
                           print("collect status: ${item.key}");
                           if(!item.value['pay']){
                             total += item.value['Amount'] as int;
                           }
+
                         });
                         print("total: $total");
                         return ListTile(
@@ -165,7 +233,7 @@ class Parties extends StatelessWidget {
                                       itemCount: collect.values.elementAt(index)['Items'].length,
                                       itemBuilder: (context, item) {
                                         // print("Items details: ${collect.values.first['Items'].length}");
-                                        print("properties: ${collect.values.elementAt(index)['Items'].values.elementAt(item).length}");
+                                        // print("properties: ${collect.values.elementAt(index)['Items'].values.elementAt(item).length}");
                                         return ListTile(
                                           title: Text(collect.values.elementAt(index)['Items'].keys.elementAt(item)),
                                           subtitle: ListView.builder(
@@ -197,80 +265,57 @@ class Parties extends StatelessWidget {
 
                   ///To Pay
                   ListView.builder(
-                      itemCount: snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty).length,
+                      itemCount: pay.length,
                       itemBuilder: (context, index) {
                         int total = 0;
                         /*for(int i=0;i<snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].keys.length;i++){
                           total += snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.elementAt(i).value['Amount'] as int;
                         }*/
-                        snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.forEach((item){
+                        pay.entries.elementAt(index).value['Items'].entries.forEach((item){
                           print("collect status: ${item.key}");
-                          if(item.value['pay']){
+                          if(!item.value['pay']){
                             total += item.value['Amount'] as int;
                           }
                         });
                         print("total: $total");
                         return ListTile(
-                          title: Text("${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty).elementAt(index).key}"),
+                          title: Text(pay.keys.elementAt(index)),
                           onTap: (){
+                            // print("${collect}");
+                            // print("Items details: ${collect.values.first['Items'].values.elementAt(0).length}");
                             Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => Scaffold(
-                                appBar: AppBar(
-                                  title: Text("${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty).elementAt(index).key}"),
-                                ),
-                                body: ListView.builder(
-                                    itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).length,
-                                    itemBuilder: (context, item) {
-                                      print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value}");
-                                      return ListTile(
-                                        title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).key}"),
-                                        subtitle: ListView.builder(
-                                            physics: const NeverScrollableScrollPhysics(),
-                                            shrinkWrap: true,
-                                            itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.length,
-                                            itemBuilder: (context, property) {
-                                              // print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.length}");
-                                              // print("${snapshot.data?.entries}");
-                                              // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
-                                              return snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.keys.elementAt(property)!="pay"?ListTile(
-                                                title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.keys.elementAt(property)}:"),
-                                                trailing: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.elementAt(property)}"),
-                                              ): const SizedBox();
-                                            }
-                                        ),
-                                      );
-                                    }
-                                ),
-                              ))
-                            );
-                            /*showDialog(context: context, builder: (context) => AlertDialog(
-                                title: Text("${snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty).elementAt(index).key}"),
-                                content: Container(
-                                  height: MediaQuery.of(context).size.height*0.8,
-                                  width: MediaQuery.of(context).size.width*0.9,
-                                  child: ListView.builder(
-                                      itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).length,
-                                      itemBuilder: (context, item) => ListTile(
-                                        title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).key}"),
-                                        subtitle: ListView.builder(
-                                            physics: const NeverScrollableScrollPhysics(),
-                                            shrinkWrap: true,
-                                            itemCount: snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.length,
-                                            itemBuilder: (context, property) {
-                                              print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.length}");
-                                              // print("${snapshot.data?.entries}");
-                                              // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
-                                              return snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.keys.elementAt(property)!="pay"?ListTile(
-                                                title: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.keys.elementAt(property)}:"),
-                                                trailing: Text("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => item.value['pay']==true).elementAt(item).value.values.elementAt(property)}"),
-                                              ): const SizedBox();
-                                            }
-                                        ),
-                                      )
+                                context,
+                                MaterialPageRoute(builder: (context) => Scaffold(
+                                  appBar: AppBar(
+                                    title: Text(pay.keys.elementAt(index)),
                                   ),
-                                )
-                            ));*/
+                                  body: ListView.builder(
+                                      itemCount: pay.values.elementAt(index)['Items'].length,
+                                      itemBuilder: (context, item) {
+                                        // print("Items details: ${collect.values.first['Items'].length}");
+                                        // print("properties: ${pay.values.elementAt(index)['Items'].values.elementAt(item).length}");
+                                        return ListTile(
+                                          title: Text(pay.values.elementAt(index)['Items'].keys.elementAt(item)),
+                                          subtitle: ListView.builder(
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              shrinkWrap: true,
+                                              itemCount: pay.values.elementAt(index)['Items'].values.elementAt(item).length,
+                                              itemBuilder: (context, property) {
+                                                // print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.length}");
+                                                // print("${snapshot.data?.entries}");
+                                                // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
+                                                print(pay.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property));
+                                                return pay.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
+                                                  title: Text("${pay.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)}:"),
+                                                  trailing: Text("${pay.values.elementAt(index)['Items'].values.elementAt(item).values.elementAt(property)}"),
+                                                ): const SizedBox();
+                                              }
+                                          ),
+                                        );
+                                      }
+                                  ),
+                                ))
+                            );
                           },
                           trailing: Text("Total: $total"),
                         );
