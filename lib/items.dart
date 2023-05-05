@@ -47,7 +47,7 @@ class _ItemsState extends State<Items> {
               return ListView.builder(
                       itemCount: snapshot.data?.length,
                       itemBuilder: (context, index) => ListTile(
-                        title: Text("${snapshot.data?.elementAt(index).toString()}"),
+                        title: Text("${snapshot.data?.elementAt(index)}"),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
