@@ -49,24 +49,25 @@ class Parties extends StatelessWidget {
         print("Error: ${error.toString()}");
       });
     }
-
-    Map<String, dynamic> data = Map();
-    await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.PNames": 1}).last.then((value) async{
-      // print("${value.entries.last.value['PNames'].length}");
-      for(int i=0;i <value.entries.last.value['PNames'].length;i++){
-        await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Parties.${value.entries.last.value['PNames'][i]}": 1}).last.then((value){
-          // print("Loop Index: $i");
-          // print("values: ${value.entries.last.value['Parties']}");
-          data.addAll(value.entries.last.value['Parties']);
-          // print("data: $data");
-        }).catchError((error){
-          print(error);
-        });
-      }
-      // await _db.collection('test').modernFind(selector: where.eq("_id", "1234"),projection: {"Nigam1.PNames": 1}).last
+    // await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.PNames": 1}).last.then((value) async{
+    //   // print("${value.entries.last.value['PNames'].length}");
+    //   // Nigam1.Parties - value.entries.last.value['Parties']
+    //   for(int i=0;i <value.entries.last.value['PNames'].length;i++){
+    //     await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Parties.${value.entries.last.value['PNames'][i]}": 1}).last.then((value){
+    //       // print("Loop Index: $i");
+    //       // print("values: ${value.entries.last.value['Parties']}");
+    //       data.addAll(value.entries.last.value['Parties']);
+    //       // print("data: $data");
+    //     }).catchError((error){
+    //       print(error);
+    //     });
+    //   }
+    //   // await _db.collection('test').modernFind(selector: where.eq("_id", "1234"),projection: {"Nigam1.PNames": 1}).last
+    // });
+    return await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Parties": 1}).last.then((value){
+      return Map<String, dynamic>.from(value.values.last['Parties']);
     });
-
-    return data;
+    // return data;
   }
 
   void initState() async{
@@ -133,29 +134,32 @@ class Parties extends StatelessWidget {
               // print("Snapshot: ${snapshot.data}");
               // collect.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
               snapshot.data?.entries.forEach((entry) {
-                print("Entry: ${entry.key}");
-                print("Collection Exists? ${entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty}");
+                // print("Entry: ${entry.key}");
+                // print("Collection Exists? ${entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty}");
                 if(entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty) {
                   // print(entry);
                   // collect.addAll({entry.key: });
-                  print("Collection Entry: ${entry.value['Items'].entries.where((item) => !item.value['pay']==true)}");
+                  // print("Collection Entry: ${entry.value['Items'].entries.where((item) => !item.value['pay']==true)}");
                   entry.value['Items'].entries.where((item) => !item.value['pay']==true).forEach((item) {
-                    print("Item: ${item}");
+                    // print("Item: ${item}");
 
                     if(collect.containsKey(entry.key)) {
-                      print("existing: ${collect[entry.key]}");
+                      print("existing: ${collect[entry.key].entries}");
+                      // collect[entry.key].addAll();
                           collect.addAll({
-                            entry.key: {
-                              collect[entry.key],
-                              {item.key: item.value}
-                            }
+                            // entry.key: MapEntry<String, dynamic>(
+                            //   collect[entry.key].key, MapEntry<String, dynamic>(co)
+                            // ),
+                            // entry.key: {
+                            //   collect[entry.key] as MapEntry<String, dynamic>,
+                            //   MapEntry<String, dynamic>(item.key, item.value)
+                            // }
+                            entry.key: Map<String, dynamic>.fromEntries([collect[entry.key].entries.first,MapEntry<String, dynamic>(item.key, item.value)])
                           });
                         }
                     else{
                       collect.addAll({
-                        entry.key : {
-                          item.key : item.value
-                        }
+                        entry.key : Map<String, dynamic>.fromEntries([MapEntry<String, dynamic>(item.key, item.value)])
                       });
                     }
                       });
@@ -167,24 +171,19 @@ class Parties extends StatelessWidget {
                 if(entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) {
                   // print(entry);
                   // collect.addAll({entry.key: });
-                  print("Collection Entry: ${entry.value['Items'].entries.where((item) => item.value['pay']==true)}");
+                  // print("Collection Entry: ${entry.value['Items'].entries.where((item) => item.value['pay']==true)}");
                   entry.value['Items'].entries.where((item) => item.value['pay']==true).forEach((item) {
-                    print("Item: ${item}");
+                    // print("Item: ${item}");
 
                     if(pay.containsKey(entry.key)) {
-                      print("existing: ${pay[entry.key]}");
+                      // print("existing: ${pay[entry.key]}");
                       pay.addAll({
-                        entry.key: {
-                          pay[entry.key],
-                          {item.key: item.value}
-                        }
+                        entry.key: Map<String, dynamic>.fromEntries([pay[entry.key].entries.first,MapEntry<String, dynamic>(item.key, item.value)])
                       });
                     }
                     else{
                       pay.addAll({
-                        entry.key : {
-                          item.key : item.value
-                        }
+                        entry.key : Map<String, dynamic>.fromEntries([MapEntry<String, dynamic>(item.key, item.value)])
                       });
                     }
                   });
@@ -198,7 +197,7 @@ class Parties extends StatelessWidget {
               });
               // pay.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
 
-              print("Collect: $collect\n\nPay: $pay");
+              print("Collect: ${collect}\n\nPay: $pay");
               return TabBarView(
                 children: [
                   ///To Collect
@@ -210,12 +209,18 @@ class Parties extends StatelessWidget {
                           total += snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.elementAt(i).value['Amount'] as int;
                         }*/
 
-                        collect.entries.elementAt(index).value['Items'].entries.forEach((item){
+                        /*collect.entries.elementAt(index).value['Items'].entries.forEach((item){
                           print("collect status: ${item.key}");
                           if(!item.value['pay']){
                             total += item.value['Amount'] as int;
                           }
 
+                        });*/
+
+
+                        // print("Amount: ${collect.entries.elementAt(index).value.values}");
+                        collect.entries.elementAt(index).value.values.forEach((item){
+                          total += item['Amount'] as int;
                         });
                         print("total: $total");
                         return ListTile(
@@ -223,6 +228,7 @@ class Parties extends StatelessWidget {
                           onTap: (){
                             // print("${collect}");
                             // print("Items details: ${collect.values.first['Items'].values.elementAt(0).length}");
+                            print("Item details: ${collect.values.elementAt(index)}");
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) => Scaffold(
@@ -230,31 +236,32 @@ class Parties extends StatelessWidget {
                                     title: Text(collect.keys.elementAt(index)),
                                   ),
                                   body: ListView.builder(
-                                      itemCount: collect.values.elementAt(index)['Items'].length,
+                                      itemCount: collect.values.elementAt(index).length,
                                       itemBuilder: (context, item) {
                                         // print("Items details: ${collect.values.first['Items'].length}");
                                         // print("properties: ${collect.values.elementAt(index)['Items'].values.elementAt(item).length}");
                                         return ListTile(
-                                          title: Text(collect.values.elementAt(index)['Items'].keys.elementAt(item)),
+                                          title: Text(collect.values.elementAt(index).keys.elementAt(item)),
                                           subtitle: ListView.builder(
                                               physics: const NeverScrollableScrollPhysics(),
                                               shrinkWrap: true,
-                                              itemCount: collect.values.elementAt(index)['Items'].values.elementAt(item).length,
+                                              itemCount: collect.values.elementAt(index).values.elementAt(item).length,
                                               itemBuilder: (context, property) {
                                                 // print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.length}");
                                                 // print("${snapshot.data?.entries}");
                                                 // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
-                                                print(collect.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property));
-                                                return collect.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
-                                                  title: Text("${collect.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)}:"),
-                                                  trailing: Text("${collect.values.elementAt(index)['Items'].values.elementAt(item).values.elementAt(property)}"),
+                                                print(collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property));
+                                                return collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
+                                                  title: Text("${collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)}:"),
+                                                  trailing: Text("${collect.values.elementAt(index).values.elementAt(item).values.elementAt(property)}"),
                                                 ): const SizedBox();
                                               }
                                           ),
                                         );
                                       }
                                   ),
-                                ))
+                                )
+                                )
                             );
                           },
                           trailing: Text("Total: $total"),
@@ -271,11 +278,14 @@ class Parties extends StatelessWidget {
                         /*for(int i=0;i<snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].keys.length;i++){
                           total += snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']==true).isNotEmpty).elementAt(index).value['Items'].entries.elementAt(i).value['Amount'] as int;
                         }*/
-                        pay.entries.elementAt(index).value['Items'].entries.forEach((item){
+                        /*pay.entries.elementAt(index).value['Items'].entries.forEach((item){
                           print("collect status: ${item.key}");
                           if(!item.value['pay']){
                             total += item.value['Amount'] as int;
                           }
+                        });*/
+                        pay.entries.elementAt(index).value.values.forEach((item){
+                          total += item['Amount'] as int;
                         });
                         print("total: $total");
                         return ListTile(
@@ -290,24 +300,24 @@ class Parties extends StatelessWidget {
                                     title: Text(pay.keys.elementAt(index)),
                                   ),
                                   body: ListView.builder(
-                                      itemCount: pay.values.elementAt(index)['Items'].length,
+                                      itemCount: pay.values.elementAt(index).length,
                                       itemBuilder: (context, item) {
                                         // print("Items details: ${collect.values.first['Items'].length}");
                                         // print("properties: ${pay.values.elementAt(index)['Items'].values.elementAt(item).length}");
                                         return ListTile(
-                                          title: Text(pay.values.elementAt(index)['Items'].keys.elementAt(item)),
+                                          title: Text(pay.values.elementAt(index).keys.elementAt(item)),
                                           subtitle: ListView.builder(
                                               physics: const NeverScrollableScrollPhysics(),
                                               shrinkWrap: true,
-                                              itemCount: pay.values.elementAt(index)['Items'].values.elementAt(item).length,
+                                              itemCount: pay.values.elementAt(index).values.elementAt(item).length,
                                               itemBuilder: (context, property) {
                                                 // print("${snapshot.data?.entries.elementAt(index).value['Items'].entries.where((item) => !item.value['pay']==true).elementAt(item).value.values.length}");
                                                 // print("${snapshot.data?.entries}");
                                                 // print("item: ${snapshot.data?.entries.where((entry) => !entry.value['Items'].values.elementAt(item)['pay']).elementAt(index).value['Items'].keys}");
-                                                print(pay.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property));
-                                                return pay.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
-                                                  title: Text("${pay.values.elementAt(index)['Items'].values.elementAt(item).keys.elementAt(property)}:"),
-                                                  trailing: Text("${pay.values.elementAt(index)['Items'].values.elementAt(item).values.elementAt(property)}"),
+                                                print(pay.values.elementAt(index).values.elementAt(item).keys.elementAt(property));
+                                                return pay.values.elementAt(index).values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
+                                                  title: Text("${pay.values.elementAt(index).values.elementAt(item).keys.elementAt(property)}:"),
+                                                  trailing: Text("${pay.values.elementAt(index).values.elementAt(item).values.elementAt(property)}"),
                                                 ): const SizedBox();
                                               }
                                           ),
