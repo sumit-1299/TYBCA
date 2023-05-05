@@ -2,62 +2,123 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mongo_dart/mongo_dart.dart' as Mongo;
 
-class Items extends StatelessWidget {
+class Items extends StatefulWidget {
   Items({Key? key, required this.db}) : super(key: key);
 
   Mongo.Db db;
 
-  Future<Map<String, dynamic>> get_data() async{
-    Map<String, dynamic> data = Map();
-    await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.PNames": 1}).last.then((value) async{
-      // print("${value.entries.last.value['PNames'].length}");
-      for(int i=0;i <value.entries.last.value['PNames'].length;i++){
-        await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Parties.${value.entries.last.value['PNames'][i]}": 1}).last.then((value){
-          // print("Loop Index: $i");
-          // print("values: ${value.entries.last.value['Parties']}");
-          data.addAll(value.entries.last.value['Parties']);
-          // print("data: $data");
-        }).catchError((error){
-          print(error);
-        });
-      }
-      // await _db.collection('test').modernFind(selector: where.eq("_id", "1234"),projection: {"Nigam1.PNames": 1}).last
+  Future<List<dynamic>> get_data() async{
+    if(!db.isConnected || db.state == Mongo.State.closed || !db.masterConnection.connected){
+
+      await db.close();
+      await db.open().then((value) {
+        print("connection Successful");
+        print("state: ${db.state}, connected? ${db.isConnected}");
+        return value;
+      }).catchError((error) {
+        print("Error: ${error.toString()}");
+      });
+    }
+
+    return await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Items": 1}).last.then((value) async{
+      print("${value.values.last['Items'].runtimeType}");
+      return value.values.last['Items'];
     });
 
-    return data;
   }
+
+  @override
+  State<Items> createState() => _ItemsState();
+}
+
+class _ItemsState extends State<Items> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Items")
-      ),
-      body: FutureBuilder(
-        future: get_data(),
-        builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
-          if(snapshot.hasData){
-            return Column(
-              children: [
-                ListTile(
-                  title: Text("New Item"),
-                  leading: Icon(Icons.add, color: Colors.purple),
-                )
-              ],
-            );
-          }
-          else if(snapshot.hasError){
-            return Center(
-              child: Text("${snapshot.error}")
-            );
-          }
-          else{
-            return Center(
-              child: CircularProgressIndicator()
-            );
-          }
-        },
-      )
+        appBar: AppBar(
+            title: Text("Items")
+        ),
+        body: FutureBuilder(
+          future: widget.get_data(),
+          builder: (context, AsyncSnapshot<List<dynamic>> snapshot) {
+            if(snapshot.hasData){
+              // print("data: ${snapshot.data}");
+              return ListView.builder(
+                      itemCount: snapshot.data?.length,
+                      itemBuilder: (context, index) => ListTile(
+                        title: Text("${snapshot.data?.elementAt(index).toString()}"),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                                onPressed: (){
+                                  TextEditingController _controller = TextEditingController();
+                                  showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: Text("Edit Item"),
+                                        content: TextFormField(
+                                          controller: _controller,
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            child: Text("Cancel"),
+                                            onPressed: (){
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                          TextButton(
+                                              onPressed: () async{
+                                                print("old list: ${snapshot.data}");
+                                                snapshot.data?.removeAt(index);
+                                                snapshot.data?.insert(index, _controller.value.text);
+                                                print("new list: ${snapshot.data}");
+                                                await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('Nigam1.Items', snapshot.data));
+                                                setState(() {});
+                                                Navigator.pop(context);
+                                              },
+                                              child: Text("Update")
+                                          )
+                                        ],
+                                      )
+                                  );
+                                },
+                                icon: Icon(Icons.edit)
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red,),
+                              onPressed: () async{
+                                // await widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Items": 1}).last.then((value) async{
+                                //   value
+                                // });
+                                print("old list: ${snapshot.data}");
+                                snapshot.data?.removeAt(index);
+                                print("new list: ${snapshot.data}");
+                                await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('Nigam1.Items', snapshot.data) );
+                                setState(() {});
+                                // await widget.db.collection('test').update(selector, document)
+                              },
+                            )
+                          ],
+                        ),
+                      )
+                  );
+
+            }
+            else if(snapshot.hasError){
+              print(snapshot.error);
+              return Center(
+                  child: Text("${snapshot.error}")
+              );
+            }
+            else{
+              return Center(
+                  child: CircularProgressIndicator()
+              );
+            }
+          },
+        ),
     );
   }
 }
