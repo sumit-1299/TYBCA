@@ -70,65 +70,92 @@ class Home extends StatelessWidget {
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 3,
-                      mainAxisSpacing: 50,
+                      mainAxisSpacing: 30,
                       crossAxisSpacing: 20
                   ),
                   children: [
-                    ListTile(
-                      title: Text("To Collect"),
-                      onTap: (){
+                    TextButton(
+                      child: Text("To Collect",style: TextStyle(fontSize: 18,color: Colors.white),),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.black)
+                      ),
+                      onPressed: (){
                         Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Parties(db: db,tabIndex: 0,))
+                            context,
+                            MaterialPageRoute(builder: (context) => Parties(db: db,tabIndex: 0,))
                         );
                       },
                     ),
-                    ListTile(
-                      title: Text("To Pay"),
-                      onTap: (){
+                    TextButton(
+                      child: Text("To Pay",style: TextStyle(fontSize: 18,color: Colors.white)),
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.black)
+                      ),
+                      onPressed: (){
                         Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => Parties(db: db,tabIndex: 1,))
                         );
                       },
                     ),
-                    ListTile(
-                      title: Text("Stock Value"),
-                      onTap: (){
+                    TextButton(
+                      child: Text("Stock Value",style: TextStyle(fontSize: 18,color: Colors.white)),
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.black)
+                      ),
+                      onPressed: (){
                         Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => Stock())
                         );
                       },
                     ),
-                    ListTile(
-                      title: Text("0"),
-                      subtitle: Text("This Week's Sale"),
-                      onTap: (){
+                    TextButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.black)
+                      ),
+                      onPressed: (){
                         Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => Sales())
                         );
                       },
+                      child: Column(
+                        children: const [
+                          Text("0",style: TextStyle(fontSize: 18,color: Colors.white)),
+                          Text("This Week's Sale",style: TextStyle(fontSize: 14,color: Colors.white)),
+                        ],
+                      ),
                     ),
-                    ListTile(
-                      title: Text("Total Balance"),
-                      subtitle: Text("Cash + Bank Balance"),
-                      onTap: (){
+                    TextButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.black)
+                      ),
+                      onPressed: (){
                         Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => CnB())
                         );
                       },
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text("Total Balance",style: TextStyle(fontSize: 18,color: Colors.white)),
+                          Text("Cash + Bank Balance",style: TextStyle(fontSize: 14,color: Colors.white))
+                        ],
+                      ),
                     ),
-                    ListTile(
-                      title: Text("Items"),
-                      onTap: (){
+                    TextButton(
+                      style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Colors.black)
+                      ),
+                      onPressed: (){
                         Navigator.push(
                             context,
                             MaterialPageRoute(builder: (context) => Items(db: db))
                         );
                       },
+                      child: const Text("Items",style: TextStyle(fontSize: 18,color: Colors.white)),
                     ),
                   ],
                 ),

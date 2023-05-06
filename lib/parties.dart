@@ -264,7 +264,13 @@ class Parties extends StatelessWidget {
                                 )
                             );
                           },
-                          trailing: Text("Total: $total"),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("₹$total",style: TextStyle(color: Colors.green),),
+                              Icon(Icons.arrow_downward, color: Colors.green,)
+                            ],
+                          ),
                         );
                       }
 
@@ -327,7 +333,13 @@ class Parties extends StatelessWidget {
                                 ))
                             );
                           },
-                          trailing: Text("Total: $total"),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text("₹$total",style: TextStyle(color: Colors.red),),
+                              Icon(Icons.arrow_upward, color: Colors.red,)
+                            ],
+                          ),
                         );
                       }
 

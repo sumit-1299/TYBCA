@@ -20,9 +20,24 @@ void main() async{
     print("Error: ${error.toString()}");
   });
 
-  runApp(MaterialApp(
+  runApp(
+      MaterialApp(
     theme: ThemeData(
-      primarySwatch: Colors.purple,
+      appBarTheme: AppBarTheme(
+        color: Colors.black
+      ),
+      scaffoldBackgroundColor: Colors.grey[900],
+      textTheme: const TextTheme(
+        titleLarge: TextStyle(),
+        titleMedium: TextStyle(),
+        titleSmall: TextStyle(),
+        bodyLarge: TextStyle(),
+        bodyMedium: TextStyle(),
+        bodySmall: TextStyle()
+      ).apply(
+        bodyColor: Colors.white,
+        displayColor: Colors.white
+      ),
     ),
     debugShowCheckedModeBanner: false,
     home: FirebaseAuth.instance.currentUser!=null?Home(db: _db):Login(db: _db),
