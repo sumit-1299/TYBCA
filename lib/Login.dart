@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mongo_dart/mongo_dart.dart' as Mongo;
 import 'package:register1/Home.dart';
 import 'package:register1/Login_phone.dart';
 import 'package:register1/Signup.dart';
 import 'package:register1/Widgets/Button.dart';
+import 'package:string_validator/string_validator.dart';
 class Login extends StatefulWidget {
   Login({Key? key, required this.db}) : super(key: key);
 
@@ -26,10 +28,6 @@ class _LoginState extends State<Login> {
         return true;
       },
       child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: const Text('Login'),
-        ),
         body: Padding(
            padding: const EdgeInsets.symmetric(horizontal: 20),
           // padding:const EdgeInsets.only(),
@@ -41,17 +39,38 @@ class _LoginState extends State<Login> {
                 key: _form,
                 child: Column(
                   children: [
+                    Text("LedgerMate", style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 50,)),
+                    const SizedBox(height: 50,),
                     TextFormField(
                       // controller: emailController,
                       decoration:const InputDecoration(
                         hintText: 'Email',
-                        prefixIcon: Icon(Icons.alternate_email),
+                        prefixIcon: Icon(Icons.alternate_email, color: Colors.white,),
+                        border: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.white
+                            )
+                        ),
+                        enabledBorder:UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey
+                              ,
+                            )
+                        ),
+                          focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.white
+                              )
+                          ),
 
                       ),
-                     initialValue: "nigam123@gmail.com",
+                     initialValue: "xyz@def.com",
                      validator: (value){
                         if(value!.isEmpty){
                           return 'Enter email';
+                        }
+                        else if(!isEmail(value)){
+                          return 'Invalid Email';
                         }
                         else
                           {
@@ -82,9 +101,24 @@ class _LoginState extends State<Login> {
                       obscureText: true,
                       decoration:const InputDecoration(
                         hintText: 'Password',
-                        prefixIcon: Icon(Icons.lock_open),
+                        prefixIcon: Icon(Icons.lock_open,color: Colors.white,),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white
+                          )
+                        ),
+                        border: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.grey
+                            )
+                        ),
+                        enabledBorder:UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey,
+                            )
+                        ),
                       ),
-                      initialValue: "1234567890",
+                      initialValue: "password",
                       validator: (value){
                         if(value!.isEmpty){
                           return 'Enter password';
@@ -102,8 +136,16 @@ class _LoginState extends State<Login> {
                 ),
               ),
              const SizedBox(height: 50,),
-              Button(title: 'Login',
-              onTap: () async{
+              TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(const Color(0xff5d5f64)),
+                ),
+
+                child: Padding(
+                  padding: EdgeInsets.only(left: MediaQuery.of(context).size.width/3,right: MediaQuery.of(context).size.width/3),
+                  child: const Text("Login",style: TextStyle(color: Colors.white))
+                ),
+              onPressed: () async{
                 if(_form.currentState!.validate()){
                   _form.currentState?.save();
                    await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -126,18 +168,18 @@ class _LoginState extends State<Login> {
                   const Text("Don't have an account"),
                   TextButton(onPressed: (){
                         Navigator.push(context,
-                            MaterialPageRoute(builder: (context) => Signup()));
+                            MaterialPageRoute(builder: (context) => Signup(db: widget.db)));
                   },
                       child: const Text('Sign up'))
                 ],
               ),
-               const SizedBox(height: 10,),
+               // const SizedBox(height: 10,),
               // InkWell(
               //   onTap: (){
               //
               //   },
               // ),
-              GestureDetector(
+              /*GestureDetector(
                 onTap: () {
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => LoginPhone()));
@@ -154,7 +196,7 @@ class _LoginState extends State<Login> {
                    child: Text('Login with phone number'),
                 ),
               ),
-              )
+              )*/
             ],
           ),
         ),

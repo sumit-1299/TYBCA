@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:register1/Login.dart';
 import 'package:register1/Widgets/Button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:register1/utils/utils.dart';
-class Signup extends StatefulWidget {
-  const Signup({Key? key}) : super(key: key);
+import 'package:mongo_dart/mongo_dart.dart' as Mongo;
+import 'package:string_validator/string_validator.dart';
 
+import 'Home.dart';
+
+class Signup extends StatefulWidget {
+  Signup({Key? key, required this.db}) : super(key: key);
+
+  Mongo.Db db;
   @override
   State<Signup> createState() => _SignupState();
 }
@@ -15,6 +22,7 @@ class _SignupState extends State<Signup> {
   final _form = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final unameController = TextEditingController();
   FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   void dispose() {
@@ -23,12 +31,8 @@ class _SignupState extends State<Signup> {
     emailController.dispose();
     passwordController.dispose();
   }
-  void Signup()
-  {
-    setState(() {
-      loading = true;
-    });
-    _auth.createUserWithEmailAndPassword(
+  void Signup() async {
+    await _auth.createUserWithEmailAndPassword(
         email: emailController.text.toString(),
         password: passwordController.text.toString()).then((value){
       setState(() {
@@ -40,14 +44,31 @@ class _SignupState extends State<Signup> {
         loading = false;
       });
     });
+    await _auth.currentUser?.updateDisplayName(unameController.text.toString()).onError((error, stackTrace) {
+      print("error: $error");
+      print("stackTrace: $stackTrace");
+    });
+    await widget.db.collection('test').insert({
+      "_id":_auth.currentUser?.uid,
+      "${_auth.currentUser?.displayName}" : {
+        "Parties" : {},
+        "People" : {},
+        "Items" : [],
+        "PNames" : [],
+        "Transactions" : {}
+      }
+    }).onError((error, stackTrace) {
+      print("error: $error");
+      print("stackTrace: $stackTrace");
+      return {"":""};
+    });
+    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.pushReplacement(context,
+    MaterialPageRoute(builder: (context)=>Home(db: widget.db)));
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // automaticallyImplyLeading: false,
-        title: Text('Signup'),
-      ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
@@ -58,15 +79,70 @@ class _SignupState extends State<Signup> {
               key: _form,
               child: Column(
                 children: [
+                  Text("Create Account", style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 40,)),
+                  const SizedBox(height: 40,),
                   TextFormField(
+                    keyboardType: TextInputType.text,
+                    controller: unameController,
+                    decoration: InputDecoration(
+                      hintText: 'Username',
+                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                      prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                      focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.white
+                          )
+                      ),
+                      border: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.grey
+                          )
+                      ),
+                      enabledBorder:UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                          )
+                      ),
+                    ),
+                    validator: (value){
+                      if(value!.isEmpty){
+                        return 'Enter Username';
+                      }
+                      else
+                      {
+                        return null;
+                      }
+                    },
+                  ),
+                  TextFormField(
+                    keyboardType: TextInputType.emailAddress,
                     controller: emailController ,
-                    decoration:const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Email',
-                      prefixIcon: Icon(Icons.alternate_email),
+                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                      prefixIcon: const Icon(Icons.alternate_email,color: Colors.white,),
+                        focusedBorder: const UnderlineInputBorder(
+                            borderSide: BorderSide(
+                                color: Colors.white
+                            )
+                        ),
+                      border: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.grey
+                          )
+                      ),
+                      enabledBorder:UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                          )
+                      ),
                     ),
                     validator: (value){
                       if(value!.isEmpty){
                         return 'Enter email';
+                      }
+                      else if(!isEmail(value)){
+                        return 'Invalid Email';
                       }
                       else
                       {
@@ -92,9 +168,25 @@ class _SignupState extends State<Signup> {
                     keyboardType: TextInputType.text,
                     controller: passwordController,
                     obscureText: true,
-                    decoration:const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Password',
-                      prefixIcon: Icon(Icons.lock_open),
+                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                      prefixIcon: const Icon(Icons.lock_open, color: Colors.white,),
+                      focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.white
+                          )
+                      ),
+                      border: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.grey
+                          )
+                      ),
+                      enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.grey,
+                          )
+                      ),
                     ),
                     validator: (value){
                       if(value!.isEmpty){
@@ -110,9 +202,16 @@ class _SignupState extends State<Signup> {
               ),
             ),
             const SizedBox(height: 50,),
-            Button(title: 'Signup',
-              loading: loading,
-              onTap: (){
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(const Color(0xff5d5f64)),
+              ),
+
+              child: Padding(
+                  padding: EdgeInsets.only(left: MediaQuery.of(context).size.width/3,right: MediaQuery.of(context).size.width/3),
+                  child: Text("Signup",style: TextStyle(color: Colors.white))
+              ),
+              onPressed: (){
                 if(_form.currentState!.validate()){
                   Signup();
                 }
@@ -128,6 +227,7 @@ class _SignupState extends State<Signup> {
                 TextButton(onPressed: (){
                   // Navigator.push(context,
                   //     MaterialPageRoute(builder: (context) => Login()));
+                  Navigator.pop(context);
                 },
                     child: Text('Login'))
               ],

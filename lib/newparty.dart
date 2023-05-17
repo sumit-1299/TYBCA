@@ -27,32 +27,39 @@ class _NewPartyState extends State<NewParty> {
             padding: EdgeInsets.all(50),
             child: ListView(
               children: [
-                const Text('New Party',style: TextStyle(fontSize: 23,fontWeight: FontWeight.bold)),
-                Container(height: 20),
                 TextFormField(
                     cursorColor: Colors.black,
                     decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.person_outline, color: Colors.purple),
-                      labelText: "Name",
-                      labelStyle: TextStyle(color: Colors.black,fontSize: 15),
-                      border:UnderlineInputBorder(
+                      prefixIcon: Icon(Icons.person_outline, color: Colors.white),
+                      hintText: "Name",
+                      hintStyle: TextStyle(color: Colors.white,fontSize: 15),
+                      border: UnderlineInputBorder(
                           borderSide: BorderSide(
-                              color: Colors.black
+                              color: Colors.grey,
+                          )
+                      ),
+                      enabledBorder:UnderlineInputBorder(
+                          borderSide: BorderSide(
+                              color: Colors.grey,
                           )
                       ),
                       focusedBorder:UnderlineInputBorder(
                         borderSide: BorderSide(
-                            color: Colors.blue
+                            color: Colors.white
                         ),
                       ),
                     ),
                     textInputAction: TextInputAction.next,
                     validator:(value){
-                      // if(value.isEmpty) return "Required!";
-
+                      if(value!.isEmpty) {
+                        return "Required!";
+                      }
+                      else {
+                        return null;
+                      }
                     },
                     onSaved: (value){
-
+                      pname = value!;
                     }
                 ),
               ],
