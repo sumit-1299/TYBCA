@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mongo_dart/mongo_dart.dart' as Mongo;
 
+import 'individual.dart';
+
 class Transactions extends StatefulWidget {
   Transactions({Key? key, required this.db, this.tabIndex=0}) : super(key: key);
 
@@ -89,7 +91,7 @@ class _TransactionsState extends State<Transactions> {
                                 },
                               ),
                               TextFormField(
-                                keyboardType: TextInputType.text,
+                                keyboardType: TextInputType.number,
                                 controller: amountController,
                                 decoration: InputDecoration(
                                   hintText: 'Amount',
@@ -119,6 +121,7 @@ class _TransactionsState extends State<Transactions> {
                                     return null;
                                   }
                                 },
+
                               )
                             ],
                           ),
@@ -128,31 +131,67 @@ class _TransactionsState extends State<Transactions> {
                               child: Text("Collect",style: GoogleFonts.roboto(color: Colors.green, fontWeight: FontWeight.w300),),
                               onPressed: () async{
                                 print("payments: ${snapshot.data}");
-                                snapshot.data?.addEntries([MapEntry("${DateTime.now()}", {
-                                  nameController.text : int.parse(amountController.text),
-                                  "pay" : false
-                                })]);
+                                if(snapshot.data!.keys.contains(nameController.text)){
+                                  print("existing: ${snapshot.data?[nameController.text].runtimeType}");
+                                  snapshot.data?[nameController.text].addEntries([MapEntry("${DateTime.now()}",{
+                                    "Amount": int.parse(
+                                        amountController.text),
+                                    "pay": false
+                                  })]);
+                                  print("After adding payments: ${snapshot.data}");
+                                }
+                                else {
+                                  snapshot.data?.addEntries([
+                                    MapEntry(nameController.text, {
+                                      "${DateTime.now()}": {
+                                        "Amount": int.parse(amountController.text),
+                                        "pay": false
+                                      },
+                                    })
+                                  ]);
+                                }
                                 await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
                                   Navigator.pop(context);
+                                  setState(() {});
                                 }).catchError((error){
                                   print("error: $error");
                                 });
+                                nameController.clear();
+                                amountController.clear();
                               },
                             ),
                             TextButton(
                               child: Text("Pay",style: GoogleFonts.roboto(color: Colors.red, fontWeight: FontWeight.w300),),
                               onPressed: () async{
                                 print("payments: ${snapshot.data}");
-                                snapshot.data?.addEntries([MapEntry("${DateTime.now()}", {
-                                  nameController.text : int.parse(amountController.text),
-                                  "pay" : true
-                                })]);
-                                await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
+                                if(snapshot.data!.keys.contains(nameController.text)){
+                                  print("existing: ${snapshot.data?[nameController.text].runtimeType}");
+                                  snapshot.data?[nameController.text].addEntries([MapEntry("${DateTime.now()}",{
+                                    "Amount": int.parse(
+                                        amountController.text),
+                                    "pay": true
+                                  })]);
+                                  print("After adding payments: ${snapshot.data}");
+                                }
+                                else {
+                                      snapshot.data?.addEntries([
+                                        MapEntry(nameController.text, {
+                                          "${DateTime.now()}": {
+                                            "Amount": int.parse(
+                                                amountController.text),
+                                            "pay": true
+                                          },
+                                        })
+                                      ]);
+                                    }
+                                    await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
                                   Navigator.pop(context);
+                                  setState(() {});
                                 }).catchError((error){
                                   print("error: $error");
                                 });
-
+                                nameController.clear();
+                                amountController.clear();
                                 // db.collection('test').insertOne({
                                 //
                                 // });
@@ -161,10 +200,6 @@ class _TransactionsState extends State<Transactions> {
                           ],
                         )
                     );
-                    // Navigator.push(
-                    //     context,
-                    //     MaterialPageRoute(builder: (context) => NewParty(db: db))
-                    // );
                     setState(() {});
                   },
                 ),
@@ -173,28 +208,62 @@ class _TransactionsState extends State<Transactions> {
                   onRefresh: () async{ setState((){}); },
                   child: ListView.builder(
                       itemCount: snapshot.data?.length,
-                      itemBuilder: (context, index) => ListTile(
-                          title: Text("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}"),
-                          subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
-                          trailing: snapshot.data?.values.toList().reversed.elementAt(index).values.last?Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                              Icon(Icons.arrow_upward, color: Colors.red,)
-                            ],
-                          ):Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                              Icon(Icons.arrow_downward, color: Colors.green,)
-                            ],
-                          )
-                      )
+                      itemBuilder: (context, index) {
+                        print("initial dates: ${snapshot.data?.values.toList().reversed.elementAt(index).keys}");
+                        int total = 0;
+                        snapshot.data?.values.toList().reversed.elementAt(index).values.forEach((value){
+                          // print("amount: ${value['Amount']}");
+                          if(value['pay']) {
+                            total -= value['Amount'] as int;
+                          }
+                          else{
+                            total += value['Amount'] as int;
+                          }
+                        });
+                        print("${snapshot.data?.keys.toList().reversed.elementAt(index)}: $total");
+                        snapshot.data?.values.elementAt(index).keys.toList().sort((String a,String b) => DateTime.parse(a).compareTo(DateTime.parse(b)));
+                        print("final dates: ${snapshot.data?.values.toList().reversed.elementAt(index).keys}");
+                        return Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                total<0?const Color(0xffb71c1c).withOpacity(0.4):Colors.green.withOpacity(0.4),
+                                Colors.transparent
+                              ],
+                              stops: const [0.1,1]
+                            )
+                          ),
+                          child: ListTile(
+                            title: Text("${snapshot.data?.keys.toList().reversed.elementAt(index)}",style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300,fontSize: 18)),
+                            subtitle: Text("${DateTime.parse(snapshot.data?.values.toList().reversed.elementAt(index).keys.first as String)}".substring(0,19)),
+                            trailing: total<0?Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("₹${total.abs()}",style: GoogleFonts.roboto(color: Colors.red, fontWeight: FontWeight.w600,fontSize: 18),),
+                                const Icon(Icons.arrow_upward, color: Colors.red,)
+                              ],
+                            ):Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("₹${total.abs()}",style: GoogleFonts.roboto(color: Colors.green, fontWeight: FontWeight.w600,fontSize: 18)),
+                                const Icon(Icons.arrow_downward, color: Colors.green,)
+                              ],
+                            ),
+                            onTap: (){
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (context) => Individual(db: widget.db,data: snapshot.data!.entries.toList().reversed.elementAt(index)))
+                              );
+                            },
+                          ),
+                        );
+                      }
                   ),
                 )
             );
           }
           else if(snapshot.hasError){
+            setState(() {});
+            print(snapshot.error);
             return Center();
           }
           else{

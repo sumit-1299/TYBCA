@@ -97,7 +97,7 @@ class _ItemsState extends State<Items> {
                             print("old list: ${snapshot.data}");
                             snapshot.data?.removeAt(index);
                             print("new list: ${snapshot.data}");
-                            await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('Nigam1.Items', snapshot.data) );
+                            await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.Items', snapshot.data) );
                             setState(() {});
                             // await widget.db.collection('test').update(selector, document)
                           },

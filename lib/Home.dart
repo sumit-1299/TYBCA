@@ -43,8 +43,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-        child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
             title: Text("LedgerMate")
         ),
@@ -101,9 +100,7 @@ class _HomeState extends State<Home> {
                   });
                 });
                 print("Collect: $collect, Pay: $pay");
-                return RefreshIndicator(
-                    color: Color(0xff141415),
-                    child: SingleChildScrollView(
+                return SingleChildScrollView(
                       child: Padding(
                           padding: EdgeInsets.all(20),
                           child: Column(
@@ -215,7 +212,7 @@ class _HomeState extends State<Home> {
                                       ],
                                     ),
                                   ),
-                                  TextButton(
+                                  /*TextButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
                                       shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
@@ -228,38 +225,66 @@ class _HomeState extends State<Home> {
                                       );
                                     },
                                     child: Text("Items",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
+                                  )*/
+                                  TextButton(
+                                      style: ButtonStyle(
+                                        backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
+                                        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                        elevation: MaterialStateProperty.all(10),
+                                        // side: MaterialStateProperty.all(BorderSide(color: Color(0xff5d5f64),width: 3))
+                                      ),
+                                      onPressed: (){
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => Transactions(db: widget.db,))
+                                        );
+                                      },
+                                      child: Text(
+                                        "Transactions",
+                                        // textAlign: TextAlign.center,
+                                        style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18
+
+                                        ),
+                                      )
                                   )
 
                                 ],
                               ),
                               const Padding(padding: EdgeInsets.only(top: 20)),
                               const Text("Recent Transactions",style: TextStyle(fontSize: 20),),
-                              FutureBuilder(
+                              const Padding(padding: EdgeInsets.only(top: 20)),
+                              /*FutureBuilder(
                                   future: widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.People": 1}).last.then((value){
                                     return Map<String, dynamic>.from(value.values.last['People']);
                                   }),
                                   builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
                                     if(snapshot.hasData){
+                                      // print("timestamp: ${snapshot.data?.entries}");
+
+                                      for (var entry in snapshot.data!.entries) {
+                                        print("timestamp: ${entry.value.keys}");
+                                      }
                                       return ListView.builder(
                                           shrinkWrap: true,
                                           physics: const NeverScrollableScrollPhysics(),
                                           itemCount: snapshot.data!.length>=10?10:snapshot.data?.length,
                                           itemBuilder: (context, index) => ListTile(
-                                              title: Text("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}"),
-                                              subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
-                                              trailing: snapshot.data?.values.toList().reversed.elementAt(index).values.last?Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                                                  Icon(Icons.arrow_upward, color: Colors.red,)
-                                                ],
-                                              ):Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                                                  Icon(Icons.arrow_downward, color: Colors.green,)
-                                                ],
-                                              )
+                                            tileColor: Color(0xff1c1d1f),
+                                              title: Text("${snapshot.data?.keys.toList().reversed.elementAt(index)}"),
+                                              // subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
+                                              // trailing: snapshot.data?.values.toList().reversed.elementAt(index).values.last?Row(
+                                              //   mainAxisSize: MainAxisSize.min,
+                                              //   children: [
+                                              //     Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
+                                              //     Icon(Icons.arrow_upward, color: Colors.red,)
+                                              //   ],
+                                              // ):Row(
+                                              //   mainAxisSize: MainAxisSize.min,
+                                              //   children: [
+                                              //     Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
+                                              //     Icon(Icons.arrow_downward, color: Colors.green,)
+                                              //   ],
+                                              // )
                                           )
                                       );
                                     }
@@ -270,16 +295,11 @@ class _HomeState extends State<Home> {
                                       return Center();
                                     }
                                   }
-                              )
+                              )*/
                             ],
                           )
                       ),
-                    ),
-
-                    onRefresh: () async{
-                      setState(() {});
-                    }
-                );
+                    );
               }
               else if(snapshot.hasError){
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to connect to server")));
@@ -292,43 +312,6 @@ class _HomeState extends State<Home> {
               }
             }
         ),
-        floatingActionButton: Container(
-            decoration: BoxDecoration(
-                color: Color(0xff5d5f64),
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      spreadRadius: 1,
-                      blurRadius: 10
-                  )
-                ]
-            ),
-            width: MediaQuery.of(context).size.width*0.3,
-            height: 40,
-            child: Center(
-                child: TextButton(
-                    onPressed: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Transactions(db: widget.db,))
-                      );
-                    },
-                    child: Text(
-                      "Transactions",
-                      // textAlign: TextAlign.center,
-                      style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300
-
-                      ),
-                    )
-                )
-            )
-        )
-
-    ),
-        onRefresh: () async{
-          setState(() {});
-        }
     );
   }
 }
