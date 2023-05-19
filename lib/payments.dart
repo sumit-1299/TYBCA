@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mongo_dart/mongo_dart.dart' as Mongo;
+import 'individual.dart';
 
 class Transactions extends StatefulWidget {
   Transactions({Key? key, required this.db, this.tabIndex=0}) : super(key: key);
@@ -16,8 +17,8 @@ class Transactions extends StatefulWidget {
 class _TransactionsState extends State<Transactions> {
   final nameController = TextEditingController();
   final amountController = TextEditingController();
-  Future<Map<String, dynamic>> data() async{
-    print("DB state: ${widget.db.isConnected}");
+
+  Future<dynamic> get_connection() async{
     if(!widget.db.isConnected || widget.db.state == Mongo.State.closed || !widget.db.masterConnection.connected){
 
       await widget.db.close();
@@ -29,6 +30,11 @@ class _TransactionsState extends State<Transactions> {
         print("Error: ${error.toString()}");
       });
     }
+  }
+
+  Future<Map<String, dynamic>> data() async{
+    print("DB state: ${widget.db.isConnected}");
+    await get_connection();
     return await widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.People": 1}).last.then((value){
       return Map<String, dynamic>.from(value.values.last['People']);
     });
@@ -41,6 +47,7 @@ class _TransactionsState extends State<Transactions> {
         future: data(),
         builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
           if(snapshot.hasData){
+            Map<String,dynamic> data = Map();
             return Scaffold(
                 appBar: AppBar(
                   title: const Text("Individuals"),
@@ -89,7 +96,7 @@ class _TransactionsState extends State<Transactions> {
                                 },
                               ),
                               TextFormField(
-                                keyboardType: TextInputType.text,
+                                keyboardType: TextInputType.number,
                                 controller: amountController,
                                 decoration: InputDecoration(
                                   hintText: 'Amount',
@@ -134,9 +141,12 @@ class _TransactionsState extends State<Transactions> {
                                 })]);
                                 await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
                                   Navigator.pop(context);
+                                  setState(() {});
                                 }).catchError((error){
                                   print("error: $error");
                                 });
+                                nameController.clear();
+                                amountController.clear();
                               },
                             ),
                             TextButton(
@@ -149,10 +159,12 @@ class _TransactionsState extends State<Transactions> {
                                 })]);
                                 await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
                                   Navigator.pop(context);
+                                  setState(() {});
                                 }).catchError((error){
                                   print("error: $error");
                                 });
-
+                                nameController.clear();
+                                amountController.clear();
                                 // db.collection('test').insertOne({
                                 //
                                 // });
@@ -165,7 +177,6 @@ class _TransactionsState extends State<Transactions> {
                     //     context,
                     //     MaterialPageRoute(builder: (context) => NewParty(db: db))
                     // );
-                    setState(() {});
                   },
                 ),
                 body: RefreshIndicator(
@@ -173,28 +184,138 @@ class _TransactionsState extends State<Transactions> {
                   onRefresh: () async{ setState((){}); },
                   child: ListView.builder(
                       itemCount: snapshot.data?.length,
-                      itemBuilder: (context, index) => ListTile(
-                          title: Text("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}"),
-                          subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
-                          trailing: snapshot.data?.values.toList().reversed.elementAt(index).values.last?Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                              Icon(Icons.arrow_upward, color: Colors.red,)
-                            ],
-                          ):Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                              Icon(Icons.arrow_downward, color: Colors.green,)
-                            ],
-                          )
-                      )
+                      itemBuilder: (context, index) {
+
+                        int total = 0;
+
+                        if(data.keys.contains("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}")){
+                          print("qwerty - ${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}: ${data[snapshot.data?.values.toList().reversed.elementAt(index).keys.first]}");
+                          data.addAll({
+                            snapshot.data?.values.toList().reversed.elementAt(index).keys.first : Map<String, dynamic>.fromEntries([data[snapshot.data!.values.toList().reversed.elementAt(index).keys.first].entries.first,MapEntry(
+                                "${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}",
+                                {
+                                  snapshot.data!.keys.toList().reversed.elementAt(index): {
+                                    "Amount": snapshot.data?.values
+                                        .toList()
+                                        .reversed
+                                        .elementAt(index)
+                                        .values
+                                        .first,
+                                    "pay": snapshot.data?.values
+                                        .toList()
+                                        .reversed
+                                        .elementAt(index)
+                                        .values
+                                        .last
+                                  }
+                                }
+                                )])
+                          }
+                          );
+                        }
+                        else {
+                          /*data.addAll(
+                            Map<String,dynamic>.fromEntries([
+                              MapEntry(
+                                  "${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}",
+                                  {
+                                  snapshot.data?.keys.toList().reversed.elementAt(index): {
+                                    "Amount": snapshot.data?.values
+                                      .toList()
+                                      .reversed
+                                      .elementAt(index)
+                                      .values
+                                      .first,
+                                  "pay": snapshot.data?.values
+                                      .toList()
+                                      .reversed
+                                      .elementAt(index)
+                                      .values
+                                      .last
+                                  }
+                                  }
+                                  )
+                            ])
+                          );*/
+                          data.addAll({
+                            "${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}" : {
+                              snapshot.data?.keys.toList().reversed.elementAt(index): {
+                                "Amount": snapshot.data?.values
+                                    .toList()
+                                    .reversed
+                                    .elementAt(index)
+                                    .values
+                                    .first,
+                                "pay": snapshot.data?.values
+                                    .toList()
+                                    .reversed
+                                    .elementAt(index)
+                                    .values
+                                    .last
+                              }
+                            }
+                          });
+                          print("Data: $data");
+                          /*data.addEntries([
+                            MapEntry(
+                                "${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}",
+                                {
+                                  "Amount": snapshot.data?.values
+                                      .toList()
+                                      .reversed
+                                      .elementAt(index)
+                                      .values
+                                      .first,
+                                  "pay": snapshot.data?.values
+                                      .toList()
+                                      .reversed
+                                      .elementAt(index)
+                                      .values
+                                      .last
+                                })
+                          ]);*/
+                        }
+                        print("data: ${data.entries}");
+                        if(snapshot.data?.values.toList().reversed.elementAt(index).values.last){
+                          total -= snapshot.data?.values.toList().reversed.elementAt(index).values.first as int;
+                        }
+                        else{
+                          total += snapshot.data?.values.toList().reversed.elementAt(index).values.first as int;
+                        }
+                        // snapshot.data?.values.toList().reversed.elementAt(index).values.forEach((value){
+                        //   print("amount: ${value}");
+                        //   // if(value['pay']) {
+                        //   //   total -= value['Amount'] as int;
+                        //   // }
+                        //   // else{
+                        //   //   total += value['Amount'] as int;
+                        //   // }
+                        // });
+                        return ListTile(
+                            title: Text("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}"),
+                            subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
+                            trailing: snapshot.data?.values.toList().reversed.elementAt(index).values.last?Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("₹${total.abs()}"),
+                                Icon(Icons.arrow_upward, color: Colors.red,)
+                              ],
+                            ):Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
+                                Icon(Icons.arrow_downward, color: Colors.green,)
+                              ],
+                            )
+                        );
+                      }
                   ),
                 )
             );
           }
           else if(snapshot.hasError){
+            get_connection();
+            setState(() {});
             return Center();
           }
           else{
