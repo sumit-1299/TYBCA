@@ -79,9 +79,7 @@ class _PartiesState extends State<Parties> {
                     if(snapshot.hasData){
                       Map<String,dynamic> collect = Map();
                       Map<String,dynamic> pay = Map();
-
                       // MapEntry<String, dynamic> mapEntry = MapEntry("zek", "0");
-
                       // print("Snapshot: ${snapshot.data}");
                       // collect.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => !item.value['pay']).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);
                       snapshot.data?.entries.forEach((entry) {
@@ -93,7 +91,6 @@ class _PartiesState extends State<Parties> {
                           // print("Collection Entry: ${entry.value['Items'].entries.where((item) => !item.value['pay']==true)}");
                           entry.value['Items'].entries.where((item) => !item.value['pay']==true).forEach((item) {
                             // print("Item: ${item}");
-
                             if(collect.containsKey(entry.key)) {
                               print("existing: ${collect[entry.key].entries}");
                               // collect[entry.key].addAll();
@@ -114,7 +111,6 @@ class _PartiesState extends State<Parties> {
                               });
                             }
                           });
-
                           // collect.addEntries(entry.value['Items'].entries.where((item) => !item.value['pay']==true));
                           // collect.addAll(entry.value['Items'].values.first);
                         }
@@ -142,8 +138,6 @@ class _PartiesState extends State<Parties> {
                           // collect.addEntries(entry.value['Items'].entries.where((item) => !item.value['pay']==true));
                           // collect.addAll(entry.value['Items'].values.first);
                         }
-
-
                         // collect.addAll({entry.key: entry.value['Items'].entries.where((item) => !item.value['pay']==true)});
                       });
                       // pay.addEntries(snapshot.data?.entries.where((entry) => entry.value['Items'].entries.where((item) => item.value['pay']==true).isNotEmpty) as Iterable<MapEntry<String, dynamic>>);

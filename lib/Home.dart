@@ -21,8 +21,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  Future<Map<String, dynamic>> data() async{
-    print("DB state: ${widget.db.isConnected}");
+
+  Future<dynamic> get_connection() async{
     if(!widget.db.isConnected || widget.db.state == Mongo.State.closed || !widget.db.masterConnection.connected){
 
       await widget.db.close();
@@ -34,6 +34,11 @@ class _HomeState extends State<Home> {
         print("Error: ${error.toString()}");
       });
     }
+  }
+
+  Future<Map<String, dynamic>> data() async{
+    print("DB state: ${widget.db.isConnected}");
+    await get_connection();
 
     return await widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.Parties": 1}).last.then((value){
       return Map<String, dynamic>.from(value.values.last['Parties']);
@@ -215,7 +220,7 @@ class _HomeState extends State<Home> {
                                       ],
                                     ),
                                   ),
-                                  TextButton(
+                                  /*TextButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
                                       shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
@@ -228,8 +233,28 @@ class _HomeState extends State<Home> {
                                       );
                                     },
                                     child: Text("Items",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
-                                  )
+                                  )*/
+                                  TextButton(
+                                    style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      elevation: MaterialStateProperty.all(10),
+                                      // side: MaterialStateProperty.all(BorderSide(color: Color(0xff5d5f64),width: 3))
+                                    ),
+                                    onPressed: (){
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => Transactions(db: widget.db,))
+                                      );
+                                    },
+                                    child: Text(
+                                      "Transactions",
+                                      // textAlign: TextAlign.center,
+                                      style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18
 
+                                      ),
+                                    )
+                                  )
                                 ],
                               ),
                               const Padding(padding: EdgeInsets.only(top: 20)),
@@ -282,7 +307,9 @@ class _HomeState extends State<Home> {
                 );
               }
               else if(snapshot.hasError){
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to connect to server")));
+                // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to connect to server")));
+                get_connection();
+                setState(() {});
                 return SizedBox();
               }
               else {
@@ -292,38 +319,7 @@ class _HomeState extends State<Home> {
               }
             }
         ),
-        floatingActionButton: Container(
-            decoration: BoxDecoration(
-                color: Color(0xff5d5f64),
-                borderRadius: BorderRadius.all(Radius.circular(20)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      spreadRadius: 1,
-                      blurRadius: 10
-                  )
-                ]
-            ),
-            width: MediaQuery.of(context).size.width*0.3,
-            height: 40,
-            child: Center(
-                child: TextButton(
-                    onPressed: (){
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => Transactions(db: widget.db,))
-                      );
-                    },
-                    child: Text(
-                      "Transactions",
-                      // textAlign: TextAlign.center,
-                      style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300
-
-                      ),
-                    )
-                )
-            )
-        )
+          
 
     ),
         onRefresh: () async{

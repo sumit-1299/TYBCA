@@ -7,7 +7,7 @@ class Items extends StatefulWidget {
 
   Mongo.Db db;
 
-  Future<List<dynamic>> get_data() async{
+  Future<dynamic> get_connection() async{
     if(!db.isConnected || db.state == Mongo.State.closed || !db.masterConnection.connected){
 
       await db.close();
@@ -19,7 +19,9 @@ class Items extends StatefulWidget {
         print("Error: ${error.toString()}");
       });
     }
-
+  }
+  Future<List<dynamic>> get_data() async{
+    await get_connection();
     return await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.Items": 1}).last.then((value) async{
       print("${value.values.last['Items'].runtimeType}");
       return value.values.last['Items'];
@@ -114,6 +116,8 @@ class _ItemsState extends State<Items> {
             }
             else if(snapshot.hasError){
               print(snapshot.error);
+              widget.get_connection();
+              setState(() {});
               return Center(
                   child: Text("${snapshot.error}")
               );
