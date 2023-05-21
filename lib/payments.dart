@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mongo_dart/mongo_dart.dart' as Mongo;
+import 'package:string_validator/string_validator.dart';
 import 'individual.dart';
 
 class Transactions extends StatefulWidget {
@@ -16,7 +17,10 @@ class Transactions extends StatefulWidget {
 
 class _TransactionsState extends State<Transactions> {
   final nameController = TextEditingController();
+  final noteController = TextEditingController();
   final amountController = TextEditingController();
+  final _formkey = GlobalKey<FormState>();
+  Map<String,dynamic> data = {};
 
   Future<dynamic> get_connection() async{
     if(!widget.db.isConnected || widget.db.state == Mongo.State.closed || !widget.db.masterConnection.connected){
@@ -43,11 +47,12 @@ class _TransactionsState extends State<Transactions> {
 
   @override
   Widget build(BuildContext context) {
-    Map<String,dynamic> data = {};
+
     return FutureBuilder(
         future: get_data(),
         builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
           if(snapshot.hasData){
+            data.clear();
             // int total = 0;
             for(int index=0;index<snapshot.data!.length;index++){
               if(data.keys.contains("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}")){
@@ -68,31 +73,6 @@ class _TransactionsState extends State<Transactions> {
                         .last
                   }
                 });
-
-                // data.addAll({
-                //   snapshot.data?.values.toList().reversed.elementAt(index).keys.first : Map<String,dynamic>.fromEntries(data[snapshot.data!.values.toList().reversed.elementAt(index).keys.first].entries)
-                // });
-                /*data.addAll({
-                  snapshot.data?.values.toList().reversed.elementAt(index).keys.first : Map<String, dynamic>.fromEntries([data[snapshot.data!.values.toList().reversed.elementAt(index).keys.first].entries.first,MapEntry(
-                      snapshot.data!.keys.toList().reversed.elementAt(index),
-                      {
-                        "Amount": snapshot.data?.values
-                            .toList()
-                            .reversed
-                            .elementAt(index)
-                            .values
-                            .first,
-                        "pay": snapshot.data?.values
-                            .toList()
-                            .reversed
-                            .elementAt(index)
-                            .values
-                            .last
-                      }
-
-                  )])
-                }
-                );*/
               }
               else {
                 data.addAll({
@@ -104,6 +84,10 @@ class _TransactionsState extends State<Transactions> {
                           .elementAt(index)
                           .values
                           .first,
+                      "note": snapshot.data?.values
+                          .toList()
+                          .reversed
+                          .elementAt(index)['note'],
                       "pay": snapshot.data?.values
                           .toList()
                           .reversed
@@ -122,126 +106,155 @@ class _TransactionsState extends State<Transactions> {
                   title: const Text("Transactions"),
                 ),
                 floatingActionButton: FloatingActionButton(
-                  child: const Icon(Icons.add,color: Color(0xff141415),),
-                  onPressed: (){
-                    showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          backgroundColor: const Color(0xff27292a),
-                          title: Text("Add Transaction",style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300)),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              TextFormField(
-                                keyboardType: TextInputType.text,
-                                controller: nameController,
-                                decoration: InputDecoration(
-                                  hintText: 'Name',
-                                  hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
-                                  // prefixIcon: const Icon(Icons.person, color: Colors.white,),
-                                  focusedBorder: const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.white
-                                      )
+                  child: const Icon(Icons.add,color: Color(0xff141415)),
+                  onPressed: () async{
+                    await get_connection().then((value){
+                      showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: const Color(0xff27292a),
+                            title: Text("Add Transaction",style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300)),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextFormField(
+                                  keyboardType: TextInputType.text,
+                                  controller: nameController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Name',
+                                    hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                    // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                    focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.white
+                                        )
+                                    ),
+                                    border: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey
+                                        )
+                                    ),
+                                    enabledBorder:const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.grey,
+                                        )
+                                    ),
                                   ),
-                                  border: const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.grey
-                                      )
-                                  ),
-                                  enabledBorder:const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.grey,
-                                      )
-                                  ),
+                                  validator: (value){
+                                    if(value!.isEmpty){
+                                      return 'Enter Name';
+                                    }
+                                    else {
+                                      return null;
+                                    }
+                                  },
                                 ),
-                                validator: (value){
-                                  if(value!.isEmpty){
-                                    return 'Enter Name';
-                                  }
-                                  else {
-                                    return null;
-                                  }
+                                TextFormField(
+                                  keyboardType: TextInputType.number,
+                                  controller: amountController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Amount',
+                                    hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                    // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                    focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.white
+                                        )
+                                    ),
+                                    border: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey
+                                        )
+                                    ),
+                                    enabledBorder:const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.grey,
+                                        )
+                                    ),
+                                  ),
+                                  validator: (value){
+                                    if(value!.isEmpty){
+                                      return 'Enter Amount';
+                                    }
+                                    else {
+                                      return null;
+                                    }
+                                  },
+                                ),
+                                TextFormField(
+                                  keyboardType: TextInputType.text,
+                                  controller: noteController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Note',
+                                    hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                    // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                    focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.white
+                                        )
+                                    ),
+                                    border: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.grey
+                                        )
+                                    ),
+                                    enabledBorder:const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Colors.grey,
+                                        )
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                            actionsAlignment: MainAxisAlignment.spaceBetween,
+                            actions: [
+                              TextButton(
+                                child: Text("Collect",style: GoogleFonts.roboto(color: Colors.green, fontWeight: FontWeight.w300),),
+                                onPressed: () async{
+                                  // print("payments: ${snapshot.data}");
+                                  snapshot.data?.addEntries([MapEntry("${DateTime.now()}", {
+                                    nameController.text : int.parse(amountController.text),
+                                    "note" : noteController.text,
+                                    "pay" : false
+                                  })]);
+                                  await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
+                                    Navigator.pop(context);
+                                    setState(() {});
+                                  }).catchError((error){
+                                    // print("error: $error");
+                                  });
+                                  nameController.clear();
+                                  amountController.clear();
                                 },
                               ),
-                              TextFormField(
-                                keyboardType: TextInputType.number,
-                                controller: amountController,
-                                decoration: InputDecoration(
-                                  hintText: 'Amount',
-                                  hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
-                                  // prefixIcon: const Icon(Icons.person, color: Colors.white,),
-                                  focusedBorder: const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.white
-                                      )
-                                  ),
-                                  border: const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.grey
-                                      )
-                                  ),
-                                  enabledBorder:const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Colors.grey,
-                                      )
-                                  ),
-                                ),
-                                validator: (value){
-                                  if(value!.isEmpty){
-                                    return 'Enter Amount';
-                                  }
-                                  else {
-                                    return null;
-                                  }
+                              TextButton(
+                                child: Text("Pay",style: GoogleFonts.roboto(color: Colors.red, fontWeight: FontWeight.w300),),
+                                onPressed: () async{
+                                  // print("payments: ${snapshot.data}");
+                                  snapshot.data?.addEntries([MapEntry("${DateTime.now()}", {
+                                    nameController.text : int.parse(amountController.text),
+                                    "note" : noteController.text,
+                                    "pay" : true
+                                  })]);
+                                  await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
+                                    Navigator.pop(context);
+                                    setState(() {});
+                                  }).catchError((error){
+                                    // print("error: $error");
+                                  });
+                                  nameController.clear();
+                                  amountController.clear();
+                                  // db.collection('test').insertOne({
+                                  //
+                                  // });
                                 },
                               )
                             ],
-                          ),
-                          actionsAlignment: MainAxisAlignment.spaceBetween,
-                          actions: [
-                            TextButton(
-                              child: Text("Collect",style: GoogleFonts.roboto(color: Colors.green, fontWeight: FontWeight.w300),),
-                              onPressed: () async{
-                                // print("payments: ${snapshot.data}");
-                                snapshot.data?.addEntries([MapEntry("${DateTime.now()}", {
-                                  nameController.text : int.parse(amountController.text),
-                                  "pay" : false
-                                })]);
-                                await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
-                                  Navigator.pop(context);
-                                  setState(() {});
-                                }).catchError((error){
-                                  // print("error: $error");
-                                });
-                                nameController.clear();
-                                amountController.clear();
-                              },
-                            ),
-                            TextButton(
-                              child: Text("Pay",style: GoogleFonts.roboto(color: Colors.red, fontWeight: FontWeight.w300),),
-                              onPressed: () async{
-                                // print("payments: ${snapshot.data}");
-                                snapshot.data?.addEntries([MapEntry("${DateTime.now()}", {
-                                  nameController.text : int.parse(amountController.text),
-                                  "pay" : true
-                                })]);
-                                await widget.db.collection('test').modernUpdate(Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid), Mongo.modify.set('${FirebaseAuth.instance.currentUser?.displayName}.People', snapshot.data)).then((value){
-                                  Navigator.pop(context);
-                                  setState(() {});
-                                }).catchError((error){
-                                  // print("error: $error");
-                                });
-                                nameController.clear();
-                                amountController.clear();
-                                // db.collection('test').insertOne({
-                                //
-                                // });
-                              },
-                            )
-                          ],
-                        )
-                    );
+                          )
+                      );
+                    });
+
                     // Navigator.push(
                     //     context,
                     //     MaterialPageRoute(builder: (context) => NewParty(db: db))
@@ -253,21 +266,22 @@ class _TransactionsState extends State<Transactions> {
                   onRefresh: () async{ setState((){}); },
                   child: ListView.builder(
                       itemCount: data.length,
-                      itemBuilder: (context, index) {
+                      itemBuilder: (context, tindex) {
                         int total = 0;
-                        print("${data.keys.elementAt(index)}: ${data.values.elementAt(index).values}");
+                        print("${data.keys.elementAt(tindex)}: ${data.values.elementAt(tindex).values}");
 
-                        for(Map<String, dynamic > value in data.values.elementAt(index).values){
+                        for(Map<String, dynamic > value in data.values.elementAt(tindex).values){
                           print("Value: ${value}");
 
                           if(value['pay']){
                             total -= value['Amount'] as int;
+
                           }
                           else{
                             total += value['Amount'] as int;
                           }
                         }
-                        print("${data.keys.elementAt(index)}'s total - $total");
+                        print("${data.keys.elementAt(tindex)}'s total - $total");
 
                         /*if(snapshot.data?.values.toList().reversed.elementAt(index).values.last){
                           total -= snapshot.data?.values.toList().reversed.elementAt(index).values.first as int;
@@ -295,8 +309,8 @@ class _TransactionsState extends State<Transactions> {
                             )
                           ),
                           child: ListTile(
-                              title: Text(data.keys.elementAt(index),style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300,fontSize: 18)),
-                              subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
+                              title: Text(data.keys.elementAt(tindex),style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w400,fontSize: 18)),
+                              subtitle: Text("${DateTime.parse(snapshot.data!.keys.toList().reversed.elementAt(tindex)).day}-${DateTime.parse(snapshot.data!.keys.toList().reversed.elementAt(tindex)).month}-${DateTime.parse(snapshot.data!.keys.toList().reversed.elementAt(tindex)).year.toString().substring(2)} at ${DateTime.parse(snapshot.data!.keys.toList().reversed.elementAt(tindex)).hour}:${DateTime.parse(snapshot.data!.keys.toList().reversed.elementAt(tindex)).minute}:${DateTime.parse(snapshot.data!.keys.toList().reversed.elementAt(tindex)).second}"),
                               trailing: total.isNegative?Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -314,7 +328,314 @@ class _TransactionsState extends State<Transactions> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => Individual(db: widget.db,data: data,index: index)
+                                    builder: (context) => Scaffold(
+                                        appBar: AppBar(
+                                            title: Text(data.keys.elementAt(tindex))
+                                        ),
+                                        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+                                        floatingActionButton: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            TextButton(
+                                                style: ButtonStyle(
+                                                    backgroundColor: MaterialStateProperty.all(Colors.green),
+                                                    fixedSize: MaterialStateProperty.all(Size(MediaQuery.of(context).size.width*0.3,40)),
+                                                    shape: MaterialStateProperty.all(const RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                    ))
+                                                ),
+                                                onPressed: () async{
+                                                  await get_data().then((transactions){
+                                                    showDialog(
+                                                        context: context,
+                                                        builder: (context) => AlertDialog(
+                                                          backgroundColor: const Color(0xff27292a),
+                                                          title: Text("Add Transaction",style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300)),
+                                                          content: Form(
+                                                              key: _formkey,
+                                                              child: Column(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  TextFormField(
+                                                                    keyboardType: TextInputType.number,
+                                                                    controller: amountController,
+                                                                    decoration: InputDecoration(
+                                                                      hintText: 'Amount',
+                                                                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                                                      // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                                                      focusedBorder: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.white
+                                                                          )
+                                                                      ),
+                                                                      border: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.grey
+                                                                          )
+                                                                      ),
+                                                                      enabledBorder:const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                            color: Colors.grey,
+                                                                          )
+                                                                      ),
+                                                                    ),
+                                                                    validator: (value){
+                                                                      if(value!.isEmpty){
+                                                                        return 'Enter Amount';
+                                                                      }
+                                                                      else if(!isNumeric(value)){
+                                                                        return 'Enter numeric value';
+                                                                      }
+                                                                      else {
+                                                                        return null;
+                                                                      }
+                                                                    },
+                                                                  ),
+                                                                  TextFormField(
+                                                                    keyboardType: TextInputType.text,
+                                                                    controller: noteController,
+                                                                    decoration: InputDecoration(
+                                                                      hintText: 'Note',
+                                                                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                                                      // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                                                      focusedBorder: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.white
+                                                                          )
+                                                                      ),
+                                                                      border: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.grey
+                                                                          )
+                                                                      ),
+                                                                      enabledBorder:const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                            color: Colors.grey,
+                                                                          )
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          ),
+                                                          actionsAlignment: MainAxisAlignment.center,
+                                                          actions: [
+                                                            TextButton(
+                                                              child: Text("Collect",style: GoogleFonts.roboto(color: Colors.green, fontWeight: FontWeight.w300),),
+                                                              onPressed: () async{
+                                                                if(_formkey.currentState!.validate()) {
+                                                                  transactions.addEntries([
+                                                                    MapEntry("${DateTime.now()}", {
+                                                                      data.keys.elementAt(tindex): int.parse(amountController.text),
+                                                                      "note" : noteController.text,
+                                                                      "pay": false
+                                                                    })
+                                                                  ]);
+                                                                  await widget.db
+                                                                      .collection('test')
+                                                                      .modernUpdate(
+                                                                      Mongo.where.eq(
+                                                                          "_id",
+                                                                          FirebaseAuth.instance
+                                                                              .currentUser?.uid),
+                                                                      Mongo.modify.set(
+                                                                          '${FirebaseAuth.instance.currentUser?.displayName}.People',
+                                                                          transactions))
+                                                                      .then((value) {
+                                                                    Navigator.pop(context);
+                                                                    setState(() {});
+                                                                  }).catchError((error) {
+                                                                    // print("error: $error");
+                                                                  });
+                                                                  noteController.clear();
+                                                                  amountController.clear();
+                                                                }
+                                                              },
+                                                            ),
+                                                          ],
+                                                        )
+                                                    );
+                                                  });
+                                                },
+                                                child: Text(
+                                                  "Collect",
+                                                  // textAlign: TextAlign.center,
+                                                  style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300,fontSize: 18),
+                                                )
+                                            ),
+                                            TextButton(
+                                                style: ButtonStyle(
+                                                    backgroundColor: MaterialStateProperty.all(Colors.red),
+                                                    fixedSize: MaterialStateProperty.all(Size(MediaQuery.of(context).size.width*0.3,40)),
+                                                    shape: MaterialStateProperty.all(const RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                                                    ))
+                                                ),
+                                                onPressed: () async{
+                                                  await get_data().then((transactions){
+                                                    showDialog(
+                                                        context: context,
+                                                        builder: (context) => AlertDialog(
+                                                          backgroundColor: const Color(0xff27292a),
+                                                          title: Text("Add Transaction",style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300)),
+                                                          content: Form(
+                                                              key: _formkey,
+                                                              child: Column(
+                                                                mainAxisSize: MainAxisSize.min,
+                                                                children: [
+                                                                  TextFormField(
+                                                                    keyboardType: TextInputType.number,
+                                                                    controller: amountController,
+                                                                    decoration: InputDecoration(
+                                                                      hintText: 'Amount',
+                                                                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                                                      // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                                                      focusedBorder: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.white
+                                                                          )
+                                                                      ),
+                                                                      border: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.grey
+                                                                          )
+                                                                      ),
+                                                                      enabledBorder:const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                            color: Colors.grey,
+                                                                          )
+                                                                      ),
+                                                                    ),
+                                                                    validator: (value){
+                                                                      if(value!.isEmpty){
+                                                                        return 'Enter Amount';
+                                                                      }
+                                                                      else if(!isNumeric(value)){
+                                                                        return 'Enter numeric value';
+                                                                      }
+                                                                      else {
+                                                                        return null;
+                                                                      }
+                                                                    },
+                                                                  ),
+                                                                  TextFormField(
+                                                                    keyboardType: TextInputType.text,
+                                                                    controller: noteController,
+                                                                    decoration: InputDecoration(
+                                                                      hintText: 'Note',
+                                                                      hintStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300),
+                                                                      // prefixIcon: const Icon(Icons.person, color: Colors.white,),
+                                                                      focusedBorder: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.white
+                                                                          )
+                                                                      ),
+                                                                      border: const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                              color: Colors.grey
+                                                                          )
+                                                                      ),
+                                                                      enabledBorder:const UnderlineInputBorder(
+                                                                          borderSide: BorderSide(
+                                                                            color: Colors.grey,
+                                                                          )
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              )
+                                                          ),
+                                                          actionsAlignment: MainAxisAlignment.center,
+                                                          actions: [
+                                                            TextButton(
+                                                              child: Text("Pay",style: GoogleFonts.roboto(color: Colors.red, fontWeight: FontWeight.w300),),
+                                                              onPressed: () async{
+                                                                if(_formkey.currentState!.validate()) {
+                                                                  transactions.addEntries([
+                                                                    MapEntry("${DateTime.now()}", {
+                                                                      data.keys.elementAt(tindex): int.parse(amountController.text),
+                                                                      "note" : noteController.text,
+                                                                      "pay": true
+                                                                    })
+                                                                  ]);
+                                                                  await widget.db
+                                                                      .collection('test')
+                                                                      .modernUpdate(
+                                                                      Mongo.where.eq(
+                                                                          "_id",
+                                                                          FirebaseAuth.instance
+                                                                              .currentUser?.uid),
+                                                                      Mongo.modify.set(
+                                                                          '${FirebaseAuth.instance.currentUser?.displayName}.People',
+                                                                          transactions))
+                                                                      .then((value) {
+                                                                    Navigator.pop(context);
+                                                                    setState(() {});
+                                                                  }).catchError((error) {
+                                                                    // print("error: $error");
+                                                                  });
+                                                                  noteController.clear();
+                                                                  amountController.clear();
+                                                                }
+                                                              },
+                                                            ),
+                                                          ],
+                                                        )
+                                                    );
+                                                  });
+                                                },
+                                                child: Text(
+                                                  "Pay",
+                                                  // textAlign: TextAlign.center,
+                                                  style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w300,fontSize: 18),
+                                                )
+                                            )
+                                          ],
+                                        ),
+                                        body: RefreshIndicator(
+                                          child: ListView.builder(
+                                            itemCount: data.entries.elementAt(tindex).value.length,
+                                            itemBuilder: (context, index) {
+                                              print("Shru: ${data.values.elementAt(tindex).values.elementAt(index)['note'].runtimeType}");
+                                              return Container(
+                                                  decoration: BoxDecoration(
+                                                      gradient: LinearGradient(
+                                                          colors: [
+                                                            data.values.elementAt(tindex).values.elementAt(index)['pay']?Colors.red.withOpacity(0.4):Colors.green.withOpacity(0.4),
+                                                            Colors.transparent,
+                                                          ],
+                                                          stops: const [0.1,1]
+                                                      )
+                                                  ),
+                                                  child: ListTile(
+                                                    title: Text("₹${data.values.elementAt(tindex).values.elementAt(index)['Amount']}",style: GoogleFonts.roboto(color: data.values.elementAt(tindex).values.elementAt(index)['pay']?Colors.red:Colors.green, fontWeight: FontWeight.w600,fontSize: 18)),
+                                                    subtitle: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                            DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inMinutes.abs()<60?
+                                                            DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inMinutes.abs()==1?
+                                                            "${DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inMinutes.abs().toString()} minute ago":
+                                                            "${DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inMinutes.abs().toString()} minutes ago":
+                                                            DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inHours.abs()==1?
+                                                            "${DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inHours.abs().toString()} hour ago":
+                                                            "${DateTime.parse(data.values.elementAt(tindex).keys.elementAt(index)).difference(DateTime.now()).inHours.abs().toString()} hours ago",
+                                                            style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w400)
+                                                        ),
+                                                        // data.values.elementAt(tindex).values.elementAt(index)['note'] != null?Text(data.values.elementAt(tindex).values.elementAt(index)['note'],style: GoogleFonts.roboto(color: Colors.white, fontWeight: FontWeight.w400)):const SizedBox()
+                                                      ],
+                                                    ),
+                                                    trailing: data.values.elementAt(tindex).values.elementAt(index)['pay']?const Icon(Icons.arrow_upward, color: Colors.red,):const Icon(Icons.arrow_downward, color: Colors.green,),
+                                                  )
+                                              );
+                                            },
+                                          ),
+                                          onRefresh: () async{
+                                            data.clear();
+                                            setState(() {});
+                                          },
+                                        )
+                                    )
                                   )
                                 );
                             }

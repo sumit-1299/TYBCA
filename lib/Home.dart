@@ -36,7 +36,7 @@ class _HomeState extends State<Home> {
     }
   }
 
-  Future<Map<String, dynamic>> data() async{
+  Future<Map<String, dynamic>> get_data() async{
     print("DB state: ${widget.db.isConnected}");
     await get_connection();
 
@@ -48,8 +48,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-        child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
             title: Text("LedgerMate")
         ),
@@ -88,7 +87,7 @@ class _HomeState extends State<Home> {
             )
         ),
         body: FutureBuilder(
-            future: data(),
+            future: get_data(),
             builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
               if(snapshot.hasData){
                 int collect=0,pay=0;
@@ -108,10 +107,9 @@ class _HomeState extends State<Home> {
                 print("Collect: $collect, Pay: $pay");
                 return RefreshIndicator(
                     color: Color(0xff141415),
-                    child: SingleChildScrollView(
-                      child: Padding(
+                    child: Padding(
                           padding: EdgeInsets.all(20),
-                          child: Column(
+                          child: ListView(
                             children: [
                               GridView(
                                 shrinkWrap: true,
@@ -149,6 +147,7 @@ class _HomeState extends State<Home> {
                                       backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
                                       shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
+                                      shadowColor: MaterialStateProperty.all(Color(0xff000000)),
                                     ),
                                     onPressed: (){
                                       Navigator.push(
@@ -220,20 +219,6 @@ class _HomeState extends State<Home> {
                                       ],
                                     ),
                                   ),
-                                  /*TextButton(
-                                    style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
-                                      elevation: MaterialStateProperty.all(10),
-                                    ),
-                                    onPressed: (){
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => Items(db: widget.db))
-                                      );
-                                    },
-                                    child: Text("Items",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
-                                  )*/
                                   TextButton(
                                     style: ButtonStyle(
                                       backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
@@ -258,17 +243,20 @@ class _HomeState extends State<Home> {
                                 ],
                               ),
                               const Padding(padding: EdgeInsets.only(top: 20)),
-                              const Text("Recent Transactions",style: TextStyle(fontSize: 20),),
+                              const Text("Recent Transactions",style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
                               FutureBuilder(
                                   future: widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.People": 1}).last.then((value){
                                     return Map<String, dynamic>.from(value.values.last['People']);
                                   }),
                                   builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
                                     if(snapshot.hasData){
-                                      return ListView.builder(
+                                      return snapshot.data!.isEmpty? Padding(
+                                        padding: EdgeInsets.only(top: MediaQuery.of(context).size.height/5),
+                                        child: Text("No Transactions",textAlign: TextAlign.center, style: GoogleFonts.roboto(color: const Color(0xffb1b5b7), fontWeight: FontWeight.w300,fontSize: 14 )),
+                                      ):ListView.builder(
                                           shrinkWrap: true,
                                           physics: const NeverScrollableScrollPhysics(),
-                                          itemCount: snapshot.data!.length>=10?10:snapshot.data?.length,
+                                          itemCount: snapshot.data!.length>10?10:snapshot.data?.length,
                                           itemBuilder: (context, index) => ListTile(
                                               title: Text("${snapshot.data?.values.toList().reversed.elementAt(index).keys.first}"),
                                               subtitle: Text("${DateTime.parse(snapshot.data?.keys.toList().reversed.elementAt(index) as String)}"),
@@ -299,7 +287,7 @@ class _HomeState extends State<Home> {
                             ],
                           )
                       ),
-                    ),
+
 
                     onRefresh: () async{
                       setState(() {});
@@ -308,8 +296,10 @@ class _HomeState extends State<Home> {
               }
               else if(snapshot.hasError){
                 // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Unable to connect to server")));
-                get_connection();
-                setState(() {});
+                get_data().then((value){
+                  setState(() {});
+                });
+
                 return SizedBox();
               }
               else {
@@ -321,10 +311,6 @@ class _HomeState extends State<Home> {
         ),
           
 
-    ),
-        onRefresh: () async{
-          setState(() {});
-        }
     );
   }
 }
