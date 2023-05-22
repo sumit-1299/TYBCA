@@ -113,6 +113,7 @@ class _TransactionsState extends State<Transactions> {
                               children: [
                                 TextFormField(
                                   keyboardType: TextInputType.text,
+                                  textInputAction: TextInputAction.next,
                                   controller: nameController,
                                   decoration: InputDecoration(
                                     hintText: 'Name',
@@ -145,6 +146,7 @@ class _TransactionsState extends State<Transactions> {
                                 ),
                                 TextFormField(
                                   keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.next,
                                   controller: amountController,
                                   decoration: InputDecoration(
                                     hintText: 'Amount',
@@ -177,6 +179,7 @@ class _TransactionsState extends State<Transactions> {
                                 ),
                                 TextFormField(
                                   keyboardType: TextInputType.text,
+                                  textInputAction: TextInputAction.done,
                                   controller: noteController,
                                   decoration: InputDecoration(
                                     hintText: 'Note',
