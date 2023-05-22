@@ -23,7 +23,7 @@ class _SignupState extends State<Signup> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final unameController = TextEditingController();
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
   void dispose() {
     // TODO: implement dispose
@@ -57,14 +57,12 @@ class _SignupState extends State<Signup> {
         "PNames" : [],
         "Transactions" : {}
       }
-    }).onError((error, stackTrace) {
-      print("error: $error");
-      print("stackTrace: $stackTrace");
-      return {"":""};
+    }).then((value){
+      Navigator.popUntil(context, (route) => route.isFirst);
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context)=>Home(db: widget.db)));
     });
-    Navigator.popUntil(context, (route) => route.isFirst);
-    Navigator.pushReplacement(context,
-    MaterialPageRoute(builder: (context)=>Home(db: widget.db)));
+
   }
   @override
   Widget build(BuildContext context) {
@@ -98,7 +96,7 @@ class _SignupState extends State<Signup> {
                               color: Colors.grey
                           )
                       ),
-                      enabledBorder:UnderlineInputBorder(
+                      enabledBorder:const UnderlineInputBorder(
                           borderSide: BorderSide(
                             color: Colors.grey,
                           )
@@ -131,7 +129,7 @@ class _SignupState extends State<Signup> {
                               color: Colors.grey
                           )
                       ),
-                      enabledBorder:UnderlineInputBorder(
+                      enabledBorder:const UnderlineInputBorder(
                           borderSide: BorderSide(
                             color: Colors.grey,
                           )
@@ -209,7 +207,7 @@ class _SignupState extends State<Signup> {
 
               child: Padding(
                   padding: EdgeInsets.only(left: MediaQuery.of(context).size.width/3,right: MediaQuery.of(context).size.width/3),
-                  child: Text("Signup",style: TextStyle(color: Colors.white))
+                  child: const Text("Signup",style: TextStyle(color: Colors.white))
               ),
               onPressed: (){
                 if(_form.currentState!.validate()){
@@ -223,13 +221,13 @@ class _SignupState extends State<Signup> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Already have an account"),
+                const Text("Already have an account"),
                 TextButton(onPressed: (){
                   // Navigator.push(context,
                   //     MaterialPageRoute(builder: (context) => Login()));
                   Navigator.pop(context);
                 },
-                    child: Text('Login'))
+                    child: const Text('Login'))
               ],
             )
           ],

@@ -13,13 +13,8 @@ void main() async{
   //Firebase Initialization
   await Firebase.initializeApp();
   //MongoDB Initialization
-  Db _db = Db("mongodb://accman:password@3.106.137.118:27017/khata?directConnection=true&appName=mongosh+1.8.0");
-  await _db.open().then((value) {
-    print("connection Successful");
-    return value;
-  }).catchError((error) {
-    print("Error: ${error.toString()}");
-  });
+  Db db = Db("mongodb://accman:password@3.106.137.118:27017/khata?directConnection=true&appName=mongosh+1.8.0");
+  await db.open();
 
   runApp(
       MaterialApp(
@@ -30,7 +25,7 @@ void main() async{
         titleTextStyle: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 20),
         iconTheme: const IconThemeData(color: Colors.white)
       ),
-      scaffoldBackgroundColor: Color(0xff141415),
+      scaffoldBackgroundColor: const Color(0xff141415),
       textTheme: TextTheme(
         titleLarge: GoogleFonts.roboto(
             color: const Color(0xffffffff),
@@ -64,7 +59,7 @@ void main() async{
         colorScheme: ColorScheme.fromSwatch().copyWith(primary: Colors.white,secondary: Colors.white)
     ),
     debugShowCheckedModeBanner: false,
-    home: FirebaseAuth.instance.currentUser!=null?Home(db: _db):Login(db: _db),
+    home: FirebaseAuth.instance.currentUser!=null?Home(db: db):Login(db: db),
   ));
 }
 

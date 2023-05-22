@@ -26,18 +26,11 @@ class _HomeState extends State<Home> {
     if(!widget.db.isConnected || widget.db.state == Mongo.State.closed || !widget.db.masterConnection.connected){
 
       await widget.db.close();
-      await widget.db.open().then((value) {
-        print("connection Successful");
-        print("state: ${widget.db.state}, connected? ${widget.db.isConnected}");
-        return value;
-      }).catchError((error) {
-        print("Error: ${error.toString()}");
-      });
+      await widget.db.open();
     }
   }
 
   Future<Map<String, dynamic>> get_data() async{
-    print("DB state: ${widget.db.isConnected}");
     await get_connection();
 
     return await widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.Parties": 1}).last.then((value){
@@ -50,36 +43,38 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-            title: Text("LedgerMate")
+            title: const Text("LedgerMate")
         ),
         drawer: Drawer(
-            backgroundColor: Color(0xff141415),
+            backgroundColor: const Color(0xff141415),
             child: ListView(
               children: [
                 Container(
                   height: 100,
-                  color: Color(0xffb1b5b7),
+                  color: const Color(0xffb1b5b7),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Spacer(),
+                      const Spacer(),
                       Text("${FirebaseAuth.instance.currentUser?.displayName}",style: GoogleFonts.roboto(color: const Color(0xff000000), fontWeight: FontWeight.w700,fontSize: 50))
                     ],
                   ),
                 ),
-                ListTile(
+                const ListTile(
                     title: Text("My Account")
                 ),
                 ListTile(
-                  title: Text("Logout", style: TextStyle(color: Colors.red)),
+                  title: const Text("Logout", style: TextStyle(color: Colors.red)),
                   onTap: () async{
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => Login(db: widget.db))
+                    await FirebaseAuth.instance.signOut().then((value) {
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                      Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => Login(db: widget.db))
 
-                    );
+                      );
+                    });
+
                   },
                 ),
 
@@ -91,8 +86,7 @@ class _HomeState extends State<Home> {
             builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot){
               if(snapshot.hasData){
                 int collect=0,pay=0;
-                snapshot.data?.entries.forEach((entry){
-                  print("entry: ${entry.value['Items']}");
+                for (var entry in snapshot.data!.entries) {
                   entry.value['Items'].entries.forEach((item){
                     if(item.value['pay']){
                       pay += item.value['Amount'] as int;
@@ -100,15 +94,12 @@ class _HomeState extends State<Home> {
                     if(!item.value['pay']){
                       collect += item.value['Amount'] as int;
                     }
-                    print("amount: ${item.value['Amount']}");
-
                   });
-                });
-                print("Collect: $collect, Pay: $pay");
+                }
                 return RefreshIndicator(
-                    color: Color(0xff141415),
+                    color: const Color(0xff141415),
                     child: Padding(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           child: ListView(
                             children: [
                               GridView(
@@ -123,8 +114,8 @@ class _HomeState extends State<Home> {
                                 children: [
                                   TextButton(
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      backgroundColor: MaterialStateProperty.all(const Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
                                     ),
                                     onPressed: (){
@@ -144,10 +135,10 @@ class _HomeState extends State<Home> {
                                   ),
                                   TextButton(
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      backgroundColor: MaterialStateProperty.all(const Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
-                                      shadowColor: MaterialStateProperty.all(Color(0xff000000)),
+                                      shadowColor: MaterialStateProperty.all(const Color(0xff000000)),
                                     ),
                                     onPressed: (){
                                       Navigator.push(
@@ -165,10 +156,9 @@ class _HomeState extends State<Home> {
                                     ),
                                   ),
                                   TextButton(
-                                    child: Text("Stock Value",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      backgroundColor: MaterialStateProperty.all(const Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
                                       // shadowColor: MaterialStateProperty.all(Colors.white),
                                     ),
@@ -178,11 +168,12 @@ class _HomeState extends State<Home> {
                                           MaterialPageRoute(builder: (context) => Stock(db: widget.db))
                                       );
                                     },
+                                    child: Text("Stock Value",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
                                   ),
                                   TextButton(
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      backgroundColor: MaterialStateProperty.all(const Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
                                     ),
                                     onPressed: (){
@@ -200,8 +191,8 @@ class _HomeState extends State<Home> {
                                   ),
                                   TextButton(
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      backgroundColor: MaterialStateProperty.all(const Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
                                       // side: MaterialStateProperty.all(BorderSide(color: Color(0xff5d5f64),width: 3))
                                     ),
@@ -221,8 +212,8 @@ class _HomeState extends State<Home> {
                                   ),
                                   TextButton(
                                     style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all(Color(0xff27292a)),
-                                      shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
+                                      backgroundColor: MaterialStateProperty.all(const Color(0xff27292a)),
+                                      shape: MaterialStateProperty.all(const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10)))),
                                       elevation: MaterialStateProperty.all(10),
                                       // side: MaterialStateProperty.all(BorderSide(color: Color(0xff5d5f64),width: 3))
                                     ),
@@ -264,23 +255,23 @@ class _HomeState extends State<Home> {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                                                  Icon(Icons.arrow_upward, color: Colors.red,)
+                                                  const Icon(Icons.arrow_upward, color: Colors.red,)
                                                 ],
                                               ):Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   Text("₹${snapshot.data?.values.toList().reversed.elementAt(index).values.first}"),
-                                                  Icon(Icons.arrow_downward, color: Colors.green,)
+                                                  const Icon(Icons.arrow_downward, color: Colors.green,)
                                                 ],
                                               )
                                           )
                                       );
                                     }
                                     else if(snapshot.hasError){
-                                      return Center();
+                                      return const Center();
                                     }
                                     else{
-                                      return Center();
+                                      return const Center();
                                     }
                                   }
                               )
@@ -300,10 +291,10 @@ class _HomeState extends State<Home> {
                   setState(() {});
                 });
 
-                return SizedBox();
+                return const SizedBox();
               }
               else {
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(color: Colors.white,),
                 );
               }

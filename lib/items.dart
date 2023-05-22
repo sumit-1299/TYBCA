@@ -47,7 +47,7 @@ class _ItemsState extends State<Items> {
             if(snapshot.hasData){
               // print("data: ${snapshot.data}");
               return RefreshIndicator(
-                color: Color(0xff141415),
+                color: const Color(0xff141415),
                   child: ListView.builder(
                   itemCount: snapshot.data?.length,
                   itemBuilder: (context, index) => ListTile(
@@ -61,13 +61,13 @@ class _ItemsState extends State<Items> {
                               showDialog(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: Text("Edit Item"),
+                                    title: const Text("Edit Item"),
                                     content: TextFormField(
                                       controller: _controller,
                                     ),
                                     actions: [
                                       TextButton(
-                                        child: Text("Cancel"),
+                                        child: const Text("Cancel"),
                                         onPressed: (){
                                           Navigator.pop(context);
                                         },
@@ -82,16 +82,16 @@ class _ItemsState extends State<Items> {
                                             setState(() {});
                                             Navigator.pop(context);
                                           },
-                                          child: Text("Update")
+                                          child: const Text("Update")
                                       )
                                     ],
                                   )
                               );
                             },
-                            icon: Icon(Icons.edit, color: Colors.white,)
+                            icon: const Icon(Icons.edit, color: Colors.white,)
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red,),
+                          icon: const Icon(Icons.delete, color: Colors.red,),
                           onPressed: () async{
                             // await widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"Nigam1.Items": 1}).last.then((value) async{
                             //   value
@@ -123,7 +123,7 @@ class _ItemsState extends State<Items> {
               );
             }
             else{
-              return Center(
+              return const Center(
                   child: CircularProgressIndicator()
               );
             }
