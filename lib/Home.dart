@@ -89,10 +89,10 @@ class _HomeState extends State<Home> {
                 for (var entry in snapshot.data!.entries) {
                   entry.value['Items'].entries.forEach((item){
                     if(item.value['pay']){
-                      pay += item.value['Amount'] as int;
+                      pay += item.value['cp'] as int;
                     }
                     if(!item.value['pay']){
-                      collect += item.value['Amount'] as int;
+                      collect += item.value['sp'] as int;
                     }
                   });
                 }
@@ -177,14 +177,14 @@ class _HomeState extends State<Home> {
                                       elevation: MaterialStateProperty.all(10),
                                     ),
                                     onPressed: (){
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (context) => Sales())
-                                      );
+                                      // Navigator.push(
+                                      //     context,
+                                      //     MaterialPageRoute(builder: (context) => Sales())
+                                      // );
                                     },
                                     child: Column(
                                       children: [
-                                        Text("0",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
+                                        Text("$collect",style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18 )),
                                         Text("This Week's Sale",style: GoogleFonts.roboto(color: const Color(0xffb1b5b7), fontWeight: FontWeight.w300,fontSize: 14 )),
                                       ],
                                     ),
@@ -226,9 +226,7 @@ class _HomeState extends State<Home> {
                                     child: Text(
                                       "Transactions",
                                       // textAlign: TextAlign.center,
-                                      style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18
-
-                                      ),
+                                      style: GoogleFonts.roboto(color: const Color(0xffffffff), fontWeight: FontWeight.w300,fontSize: 18),
                                     )
                                   )
                                 ],

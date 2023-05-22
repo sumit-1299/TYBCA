@@ -13,19 +13,13 @@ class Stock extends StatefulWidget {
     if(!db.isConnected || db.state == Mongo.State.closed || !db.masterConnection.connected){
 
       await db.close();
-      await db.open().then((value) {
-        print("connection Successful");
-        print("state: ${db.state}, connected? ${db.isConnected}");
-        return value;
-      }).catchError((error) {
-        print("Error: ${error.toString()}");
-      });
+      await db.open();
     }
   }
   Future<Map<String, dynamic>> get_data() async{
     await get_connection();
     return await db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.Items": 1}).last.then((value) async{
-      print("${value.values.last['Items']}");
+        print("${value.values.last['Items']}");
       return value.values.last['Items'];
     });
 
@@ -48,7 +42,7 @@ class _StockState extends State<Stock> {
           title: const Text("Stocks")
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add,color: Color(0xff141415)),
+        child: const Icon(Icons.add,color: Color(0xff141415)),
         onPressed: (){
           showDialog(
               context: context,
@@ -61,7 +55,7 @@ class _StockState extends State<Stock> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         TextFormField(
-                          keyboardType: TextInputType.number,
+                          keyboardType: TextInputType.text,
                           textInputAction: TextInputAction.next,
                           decoration: InputDecoration(
                             labelText: 'Name',
@@ -241,7 +235,7 @@ class _StockState extends State<Stock> {
                           });
                         }
                       },
-                      child: const Text("Update")
+                      child: const Text("Add")
                   )
                 ],
               )

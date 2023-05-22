@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mongo_dart/mongo_dart.dart' as Mongo;
 import 'package:register1/newparty.dart';
+import 'package:string_validator/string_validator.dart';
 
 class Parties extends StatefulWidget {
   Parties({Key? key, required this.db, this.tabIndex=0}) : super(key: key);
@@ -15,12 +16,20 @@ class Parties extends StatefulWidget {
 }
 
 class _PartiesState extends State<Parties> {
-  Future<Map<String, dynamic>> data() async{
-    if(!widget.db.isConnected || widget.db.state == Mongo.State.closed || !widget.db.masterConnection.connected){
+  Map<String, dynamic> parties = {};
+  final formkey = GlobalKey<FormState>();
+  late int cp,sp,qty;
+  late String name, selectedItem = "";
 
+  Future<dynamic> get_connection() async{
+    if(!widget.db.isConnected || widget.db.state == Mongo.State.closed || !widget.db.masterConnection.connected){
       await widget.db.close();
       await widget.db.open();
     }
+  }
+
+  Future<Map<String, dynamic>> data() async{
+    await get_connection();
     return await widget.db.collection('test').modernFind(selector: Mongo.where.eq("_id", FirebaseAuth.instance.currentUser?.uid),projection: {"${FirebaseAuth.instance.currentUser?.displayName}.Parties": 1}).last.then((value){
       return Map<String, dynamic>.from(value.values.last['Parties']);
     });
@@ -62,7 +71,7 @@ class _PartiesState extends State<Parties> {
                   onPressed: (){
                     Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => NewParty(db: widget.db))
+                        MaterialPageRoute(builder: (context) => NewParty(db: widget.db, data: parties))
                     );
                   },
                 ),
@@ -70,6 +79,7 @@ class _PartiesState extends State<Parties> {
                   future: data(),
                   builder: (context, AsyncSnapshot<Map<String,dynamic>> snapshot){
                     if(snapshot.hasData){
+                      parties = snapshot.data!;
                       Map<String,dynamic> collect = {};
                       Map<String,dynamic> pay = {};
                       for (var entry in snapshot.data!.entries) {
@@ -107,12 +117,14 @@ class _PartiesState extends State<Parties> {
                       return TabBarView(
                         children: [
                           ///To Collect
-                          ListView.builder(
+                          RefreshIndicator(
+                              color: const Color(0xff141415),
+                              child: ListView.builder(
                               itemCount: collect.length,
                               itemBuilder: (context, index) {
                                 int total = 0;
                                 collect.entries.elementAt(index).value.values.forEach((item){
-                                  total += item['Amount'] as int;
+                                  total += item['sp'] as int;
                                 });
 
                                 return ListTile(
@@ -127,18 +139,34 @@ class _PartiesState extends State<Parties> {
                                           body: ListView.builder(
                                               itemCount: collect.values.elementAt(index).length,
                                               itemBuilder: (context, item) {
-                                                return ListTile(
-                                                  title: Text(collect.values.elementAt(index).keys.elementAt(item)),
-                                                  subtitle: ListView.builder(
-                                                      physics: const NeverScrollableScrollPhysics(),
-                                                      shrinkWrap: true,
-                                                      itemCount: collect.values.elementAt(index).values.elementAt(item).length,
-                                                      itemBuilder: (context, property) {
-                                                        return collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
-                                                          title: Text("${collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)}:"),
-                                                          trailing: Text("${collect.values.elementAt(index).values.elementAt(item).values.elementAt(property)}"),
-                                                        ): const SizedBox();
-                                                      }
+                                                return Padding(
+                                                  padding: const EdgeInsets.all(20),
+                                                  child: Card(
+                                                    elevation: 10,
+                                                    color: const Color(0xff27292a),
+                                                    shape: const RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.all(Radius.circular(20))
+                                                    ),
+                                                    child: ListTile(
+                                                      title: Text(collect.values.elementAt(index).keys.elementAt(item)),
+                                                      subtitle: ListView.builder(
+                                                          physics: const NeverScrollableScrollPhysics(),
+                                                          shrinkWrap: true,
+                                                          itemCount: collect.values.elementAt(index).values.elementAt(item).length,
+                                                          itemBuilder: (context, property) {
+                                                            return collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
+                                                              title: Text(
+                                                                  collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)=="cp"?
+                                                                  "Purchase Price:":
+                                                                  collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)=="sp"?
+                                                                  "Selling Price:":
+                                                                  "Quantity:"
+                                                              ),
+                                                              trailing: Text("${collect.values.elementAt(index).values.elementAt(item).values.elementAt(property)}"),
+                                                            ): const SizedBox();
+                                                          }
+                                                      ),
+                                                    ),
                                                   ),
                                                 );
                                               }
@@ -158,14 +186,21 @@ class _PartiesState extends State<Parties> {
                               }
 
                           ),
+                              onRefresh: () async{
+                                setState(() {
+
+                                });
+                          }),
 
                           ///To Pay
-                          ListView.builder(
+                          RefreshIndicator(
+                              color: const Color(0xff141415),
+                              child: ListView.builder(
                               itemCount: pay.length,
                               itemBuilder: (context, index) {
                                 int total = 0;
                                 pay.entries.elementAt(index).value.values.forEach((item){
-                                  total += item['Amount'] as int;
+                                  total += item['cp'] as int;
                                 });
                                 return ListTile(
                                   title: Text(pay.keys.elementAt(index)),
@@ -179,19 +214,35 @@ class _PartiesState extends State<Parties> {
                                           body: ListView.builder(
                                               itemCount: pay.values.elementAt(index).length,
                                               itemBuilder: (context, item) {
-                                                return ListTile(
-                                                  title: Text(pay.values.elementAt(index).keys.elementAt(item)),
-                                                  subtitle: ListView.builder(
-                                                      physics: const NeverScrollableScrollPhysics(),
-                                                      shrinkWrap: true,
-                                                      itemCount: pay.values.elementAt(index).values.elementAt(item).length,
-                                                      itemBuilder: (context, property) {
-                                                        return pay.values.elementAt(index).values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
-                                                          title: Text("${pay.values.elementAt(index).values.elementAt(item).keys.elementAt(property)}:"),
-                                                          trailing: Text("${pay.values.elementAt(index).values.elementAt(item).values.elementAt(property)}"),
-                                                        ): const SizedBox();
-                                                      }
-                                                  ),
+                                                return Padding(
+                                                  padding: const EdgeInsets.all(20),
+                                                  child: Card(
+                                                      elevation: 10,
+                                                      color: const Color(0xff27292a),
+                                                      shape: const RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.all(Radius.circular(20))
+                                                      ),
+                                                      child: ListTile(
+                                                        title: Text(pay.values.elementAt(index).keys.elementAt(item)),
+                                                        subtitle: ListView.builder(
+                                                            physics: const NeverScrollableScrollPhysics(),
+                                                            shrinkWrap: true,
+                                                            itemCount: pay.values.elementAt(index).values.elementAt(item).length,
+                                                            itemBuilder: (context, property) {
+                                                              return pay.values.elementAt(index).values.elementAt(item).keys.elementAt(property)!="pay"?ListTile(
+                                                                title: Text(
+                                                                    collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)=="cp"?
+                                                                    "Purchase Price:":
+                                                                    collect.values.elementAt(index).values.elementAt(item).keys.elementAt(property)=="sp"?
+                                                                    "Selling Price:":
+                                                                    "Quantity:"
+                                                                ),
+                                                                trailing: Text("${pay.values.elementAt(index).values.elementAt(item).values.elementAt(property)}"),
+                                                              ): const SizedBox();
+                                                            }
+                                                        ),
+                                                      )
+                                                  )
                                                 );
                                               }
                                           ),
@@ -209,6 +260,11 @@ class _PartiesState extends State<Parties> {
                               }
 
                           ),
+                              onRefresh: () async{
+                                setState(() {
+
+                                });
+                              }),
                         ],
                       );
                     }
