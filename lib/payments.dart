@@ -697,14 +697,14 @@ class _TransactionsState extends State<Transactions> {
                 title: const Text("Transactions"),
               ),
               body: const Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 20),
-                        Text("Fetching Data")
-                      ]
-                  )
+                  // child: const Column(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     children: [
+                  //       CircularProgressIndicator(),
+                  //       SizedBox(height: 20),
+                  //       Text("Fetching Data")
+                  //     ]
+                  // )
               )
             );
           }
@@ -713,7 +713,7 @@ class _TransactionsState extends State<Transactions> {
                 appBar: AppBar(
                   title: const Text("Transactions"),
                 ),
-                body: const Center(
+                body:  Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -721,7 +721,7 @@ class _TransactionsState extends State<Transactions> {
                         SizedBox(height: 20),
                         Text("Fetching Data")
                       ]
-                  )
+                  ),
                 )
             );
           }
